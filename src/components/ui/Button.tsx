@@ -22,7 +22,7 @@ export interface ButtonProps extends Omit<TouchableOpacityProps, 'disabled'> {
 }
 
 /**
- * Reusable button with primary (Rocket Orange) and secondary variants.
+ * Reusable button with primary (Teal) and secondary variants.
  * Supports loading and disabled states with appropriate visual feedback.
  */
 export function Button({
@@ -37,7 +37,7 @@ export function Button({
   const isDisabled = disabled || loading;
 
   const baseClasses = 'flex-row items-center justify-center rounded-2xl px-6 py-3';
-  const primaryClasses = 'bg-rocket-orange';
+  const primaryClasses = 'bg-teal';
   const secondaryClasses = 'border border-light-gray bg-white';
   const disabledClasses = 'opacity-50';
 
@@ -62,7 +62,7 @@ export function Button({
       {loading && (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' ? '#FFFFFF' : '#0B1736'}
+          color={variant === 'primary' ? '#FFFFFF' : '#0B1D3A'}
           className="mr-2"
         />
       )}

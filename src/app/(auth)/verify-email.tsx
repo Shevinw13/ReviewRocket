@@ -27,7 +27,7 @@ export default function VerifyEmailScreen() {
       {/* Continue to Onboarding Button */}
       <Pressable
         onPress={() => router.replace("/(auth)/onboarding")}
-        className="bg-rocket-orange rounded-lg py-4 px-8 items-center"
+        className="bg-teal rounded-lg py-4 px-8 items-center"
         accessibilityRole="button"
         accessibilityLabel="Continue"
       >

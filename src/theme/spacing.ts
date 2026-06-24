@@ -1,5 +1,5 @@
 /**
- * Consistent spacing scale for Review Rocket.
+ * Consistent spacing scale for Nudg.
  * Based on a 4pt grid system for visual harmony.
  * Use these values for margins, paddings, and gaps.
  */

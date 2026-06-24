@@ -22,9 +22,9 @@ import { TIER_QUOTAS } from "../_shared/types/index.ts";
 
 /** App Store product ID to subscription tier mapping. */
 const PRODUCT_ID_TO_TIER: Record<string, SubscriptionTier> = {
-  "com.reviewrocket.starter": "starter",
-  "com.reviewrocket.growth": "growth",
-  "com.reviewrocket.pro": "pro",
+  "com.nudg.starter": "starter",
+  "com.nudg.growth": "growth",
+  "com.nudg.pro": "pro",
 };
 
 /** App Store Server Notification V2 types we handle. */

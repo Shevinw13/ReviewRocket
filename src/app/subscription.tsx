@@ -59,7 +59,7 @@ export default function SubscriptionScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={24} color="#0B1736" />
+            <Ionicons name="arrow-back" size={24} color="#0B1D3A" />
           </Pressable>
           <Text className="text-heading font-bold text-navy flex-1">
             Subscription

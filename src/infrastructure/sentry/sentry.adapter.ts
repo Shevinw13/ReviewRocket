@@ -116,7 +116,7 @@ export function initSentry(): void {
     // Disable in development to avoid noise
     enabled: !__DEV__,
     // Include release/environment info
-    release: `com.reviewrocket.app@${appVersion}+${buildNumber}`,
+    release: `com.nudg.app@${appVersion}+${buildNumber}`,
     environment: __DEV__ ? 'development' : 'production',
   });
 

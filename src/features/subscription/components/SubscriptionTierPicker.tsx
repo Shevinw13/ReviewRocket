@@ -51,7 +51,7 @@ function TierCard({
     <View
       className={`rounded-2xl border p-5 mb-4 ${
         isCurrent
-          ? 'border-rocket-orange bg-rocket-orange/5'
+          ? 'border-teal bg-teal/5'
           : 'border-light-gray bg-white'
       }`}
       accessibilityRole="summary"
@@ -62,14 +62,14 @@ function TierCard({
         <View className="flex-row items-center">
           <Text
             className={`text-body font-bold ${
-              isCurrent ? 'text-rocket-orange' : 'text-navy'
+              isCurrent ? 'text-teal' : 'text-navy'
             }`}
           >
             {name}
           </Text>
           {isCurrent && (
-            <View className="ml-2 bg-rocket-orange/10 px-2 py-0.5 rounded-full">
-              <Text className="text-caption font-semibold text-rocket-orange">
+            <View className="ml-2 bg-teal/10 px-2 py-0.5 rounded-full">
+              <Text className="text-caption font-semibold text-teal">
                 Current
               </Text>
             </View>
@@ -83,11 +83,11 @@ function TierCard({
         <Ionicons
           name="chatbubble-outline"
           size={16}
-          color={isCurrent ? '#FF6B35' : '#6B7280'}
+          color={isCurrent ? '#0CBFA6' : '#6B7280'}
         />
         <Text
           className={`text-caption ml-2 ${
-            isCurrent ? 'text-rocket-orange/80' : 'text-navy/60'
+            isCurrent ? 'text-teal/80' : 'text-navy/60'
           }`}
         >
           {smsLimit.toLocaleString()} SMS messages per month
@@ -96,10 +96,10 @@ function TierCard({
 
       {/* Action Button */}
       {isCurrent ? (
-        <View className="bg-rocket-orange/10 rounded-xl py-3 items-center">
+        <View className="bg-teal/10 rounded-xl py-3 items-center">
           <View className="flex-row items-center">
-            <Ionicons name="checkmark-circle" size={18} color="#FF6B35" />
-            <Text className="text-caption font-semibold text-rocket-orange ml-1.5">
+            <Ionicons name="checkmark-circle" size={18} color="#0CBFA6" />
+            <Text className="text-caption font-semibold text-teal ml-1.5">
               Your Current Plan
             </Text>
           </View>
@@ -109,7 +109,7 @@ function TierCard({
           onPress={onSelect}
           disabled={isPurchasing}
           className={`rounded-xl py-3 items-center ${
-            isPurchasing ? 'bg-rocket-orange/50' : 'bg-rocket-orange active:bg-rocket-orange/80'
+            isPurchasing ? 'bg-teal/50' : 'bg-teal active:bg-teal/80'
           }`}
           accessibilityRole="button"
           accessibilityLabel={`Subscribe to ${name} plan`}

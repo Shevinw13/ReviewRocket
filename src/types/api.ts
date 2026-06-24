@@ -1,5 +1,5 @@
 /**
- * API request/response DTOs for Review Rocket.
+ * API request/response DTOs for Nudg.
  * These types define the contract between the app and backend services.
  */
 

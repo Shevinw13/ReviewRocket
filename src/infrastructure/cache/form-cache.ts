@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { type SendRequestFormData } from '@/types';
 
-const STORAGE_KEY = 'review_rocket_pending_requests';
+const STORAGE_KEY = 'nudg_pending_requests';
 const MAX_ENTRIES = 50;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 

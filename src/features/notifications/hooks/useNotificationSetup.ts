@@ -5,7 +5,7 @@ import { useService } from '@/services';
 import { useAuthContext } from '@/features/auth/context/AuthContext';
 import type { NotificationPermissionStatus } from '@/types';
 
-const PROMPT_DISMISSED_KEY = '@review_rocket/notification_prompt_dismissed';
+const PROMPT_DISMISSED_KEY = '@nudg/notification_prompt_dismissed';
 
 /**
  * Hook that manages notification setup on first authenticated app launch.

@@ -4,7 +4,7 @@ import { ActivityIndicator, View, type ActivityIndicatorProps } from 'react-nati
 export interface LoadingIndicatorProps {
   /** Spinner size */
   size?: ActivityIndicatorProps['size'];
-  /** Spinner color (defaults to Rocket Orange) */
+  /** Spinner color (defaults to Teal) */
   color?: string;
   /** Accessibility label */
   accessibilityLabel?: string;
@@ -18,7 +18,7 @@ export interface LoadingIndicatorProps {
  */
 export function LoadingIndicator({
   size = 'small',
-  color = '#FF6B35',
+  color = '#0CBFA6',
   accessibilityLabel = 'Loading',
 }: LoadingIndicatorProps) {
   return (

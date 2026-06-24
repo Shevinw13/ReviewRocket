@@ -128,7 +128,7 @@ export function FeedbackCard({
             accessibilityRole="button"
             accessibilityLabel={`Call ${customerName}`}
           >
-            <Ionicons name="call-outline" size={16} color="#0B1736" />
+            <Ionicons name="call-outline" size={16} color="#0B1D3A" />
             <Text className="text-caption font-medium text-navy ml-1.5">
               Call Customer
             </Text>

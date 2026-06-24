@@ -1,5 +1,5 @@
 /**
- * Domain models for Review Rocket.
+ * Domain models for Nudg.
  * These types represent the core business entities.
  */
 

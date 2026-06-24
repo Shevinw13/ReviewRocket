@@ -202,8 +202,8 @@ export default function InboxScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#FF6B35"
-              colors={['#FF6B35']}
+              tintColor="#0CBFA6"
+              colors={['#0CBFA6']}
             />
           }
         >

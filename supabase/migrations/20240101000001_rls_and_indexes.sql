@@ -1,4 +1,4 @@
--- Review Rocket MVP: Row Level Security Policies and Performance Indexes
+-- Nudg MVP: Row Level Security Policies and Performance Indexes
 -- This migration enables RLS on core tables and creates policies ensuring
 -- business owners can only access their own data. It also adds indexes
 -- for common query patterns.

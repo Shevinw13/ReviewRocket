@@ -203,7 +203,7 @@ export default function LoginScreen() {
           {/* Header */}
           <View className="mb-10 items-center">
             <Text className="text-heading font-bold text-navy">
-              Review Rocket
+              Nudg
             </Text>
             <Text className="mt-2 text-body text-gray-500">
               Sign in to your account
@@ -291,7 +291,7 @@ export default function LoginScreen() {
               accessibilityRole="button"
               accessibilityLabel="Forgot password"
             >
-              <Text className="text-caption font-medium text-rocket-orange">
+              <Text className="text-caption font-medium text-teal">
                 Forgot Password?
               </Text>
             </TouchableOpacity>
@@ -302,8 +302,8 @@ export default function LoginScreen() {
               disabled={isLoading || isLockedOut}
               className={`rounded-lg py-4 ${
                 isLoading || isLockedOut
-                  ? "bg-rocket-orange/50"
-                  : "bg-rocket-orange"
+                  ? "bg-teal/50"
+                  : "bg-teal"
               }`}
               accessibilityRole="button"
               accessibilityLabel="Sign in"
@@ -329,7 +329,7 @@ export default function LoginScreen() {
               accessibilityRole="link"
               accessibilityLabel="Sign up"
             >
-              <Text className="text-body font-semibold text-rocket-orange">
+              <Text className="text-body font-semibold text-teal">
                 Sign Up
               </Text>
             </TouchableOpacity>
@@ -376,7 +376,7 @@ export default function LoginScreen() {
               </Text>
               <TouchableOpacity
                 onPress={closeForgotPasswordModal}
-                className="mt-8 rounded-lg bg-rocket-orange px-8 py-3"
+                className="mt-8 rounded-lg bg-teal px-8 py-3"
                 accessibilityRole="button"
                 accessibilityLabel="Back to login"
               >
@@ -433,8 +433,8 @@ export default function LoginScreen() {
                 disabled={forgotPasswordLoading}
                 className={`rounded-lg py-4 ${
                   forgotPasswordLoading
-                    ? "bg-rocket-orange/50"
-                    : "bg-rocket-orange"
+                    ? "bg-teal/50"
+                    : "bg-teal"
                 }`}
                 accessibilityRole="button"
                 accessibilityLabel="Send reset link"

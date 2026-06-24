@@ -1,5 +1,5 @@
 /**
- * Typography hierarchy for Review Rocket.
+ * Typography hierarchy for Nudg.
  * 3 distinct levels with minimum 4pt difference between each:
  * - Heading: 24pt (for screen titles, section headers)
  * - Body: 16pt (for primary content, form labels)

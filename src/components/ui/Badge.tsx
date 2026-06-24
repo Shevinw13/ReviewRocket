@@ -9,7 +9,7 @@ export interface BadgeProps {
 }
 
 /**
- * Small circular numeric badge using Rocket Orange background.
+ * Small circular numeric badge using Teal background.
  * Used for unread counts on tabs and inbox filters.
  * Renders nothing if count is 0 or negative.
  */
@@ -20,7 +20,7 @@ export function Badge({ count, accessibilityLabel }: BadgeProps) {
 
   return (
     <View
-      className="min-w-[20px] h-5 items-center justify-center rounded-full bg-rocket-orange px-1"
+      className="min-w-[20px] h-5 items-center justify-center rounded-full bg-teal px-1"
       accessibilityLabel={accessibilityLabel ?? `${count} items`}
       accessibilityRole="text"
     >

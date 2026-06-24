@@ -1,5 +1,5 @@
 {
-  "name": "review-rocket",
+  "name": "nudg",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {

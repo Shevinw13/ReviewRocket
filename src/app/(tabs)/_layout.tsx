@@ -8,7 +8,7 @@ import { useUnresolvedCount } from "@/features/inbox/hooks/useUnresolvedCount";
  * Tab navigation layout for authenticated users.
  *
  * Three tabs: Home (Dashboard), Inbox, Settings.
- * - Active tab: Rocket Orange (#FF6B35)
+ * - Active tab: Teal (#0CBFA6)
  * - Inactive tab: Light Gray (#E5E7EB)
  * - Tab bar background: white
  * - Labels visible below icons
@@ -25,7 +25,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.rocketOrange,
+        tabBarActiveTintColor: colors.teal,
         tabBarInactiveTintColor: colors.lightGray,
         tabBarShowLabel: true,
         tabBarStyle: {

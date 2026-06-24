@@ -85,7 +85,7 @@ export default function SignupScreen() {
           Create your account
         </Text>
         <Text className="text-body text-navy/70 mb-8">
-          Start collecting Google reviews for your business.
+          Your best customers want to help. They just need a nudge.
         </Text>
 
         {/* Server Error Banner */}
@@ -166,7 +166,7 @@ export default function SignupScreen() {
               accessibilityLabel={passwordVisible ? "Hide password" : "Show password"}
               accessibilityRole="button"
             >
-              <Text className="text-body text-rocket-orange font-medium">
+              <Text className="text-body text-teal font-medium">
                 {passwordVisible ? "Hide" : "Show"}
               </Text>
             </Pressable>
@@ -193,7 +193,7 @@ export default function SignupScreen() {
           onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}
           className={`rounded-lg py-4 items-center mt-4 ${
-            isSubmitting ? "bg-rocket-orange/60" : "bg-rocket-orange"
+            isSubmitting ? "bg-teal/60" : "bg-teal"
           }`}
           accessibilityRole="button"
           accessibilityLabel="Create Account"
@@ -213,7 +213,7 @@ export default function SignupScreen() {
             onPress={() => router.replace("/(auth)/login")}
             accessibilityRole="link"
           >
-            <Text className="text-body text-rocket-orange font-medium">
+            <Text className="text-body text-teal font-medium">
               Log in
             </Text>
           </Pressable>

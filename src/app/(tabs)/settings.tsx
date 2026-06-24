@@ -107,8 +107,8 @@ export default function SettingsScreen() {
           </Text>
           <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
             <View className="px-4 py-3 border-b border-light-gray flex-row items-center">
-              <View className="w-10 h-10 rounded-full bg-rocket-orange/10 items-center justify-center mr-3">
-                <Ionicons name="business" size={20} color="#FF6B35" />
+              <View className="w-10 h-10 rounded-full bg-teal/10 items-center justify-center mr-3">
+                <Ionicons name="business" size={20} color="#0CBFA6" />
               </View>
               <View className="flex-1">
                 <Text className="text-body font-semibold text-navy">
@@ -119,7 +119,7 @@ export default function SettingsScreen() {
             </View>
             <View className="px-4 py-3 border-b border-light-gray flex-row items-center">
               <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                <Ionicons name="person" size={20} color="#0B1736" />
+                <Ionicons name="person" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
                 <Text className="text-body font-medium text-navy">
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
             </View>
             <View className="px-4 py-3 flex-row items-center">
               <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                <Ionicons name="mail" size={20} color="#0B1736" />
+                <Ionicons name="mail" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
                 <Text className="text-body font-medium text-navy" numberOfLines={1}>
@@ -151,8 +151,8 @@ export default function SettingsScreen() {
             {/* Tier Badge */}
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-row items-center">
-                <View className="bg-rocket-orange/10 px-3 py-1 rounded-full">
-                  <Text className="text-caption font-bold text-rocket-orange">
+                <View className="bg-teal/10 px-3 py-1 rounded-full">
+                  <Text className="text-caption font-bold text-teal">
                     {tierName}
                   </Text>
                 </View>
@@ -163,7 +163,7 @@ export default function SettingsScreen() {
                 className="active:opacity-70"
                 onPress={() => router.push('/subscription')}
               >
-                <Text className="text-caption font-semibold text-rocket-orange">
+                <Text className="text-caption font-semibold text-teal">
                   Upgrade Plan
                 </Text>
               </Pressable>
@@ -209,7 +209,7 @@ export default function SettingsScreen() {
             <View className="px-4 py-3 flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                  <Ionicons name="notifications" size={20} color="#0B1736" />
+                  <Ionicons name="notifications" size={20} color="#0B1D3A" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-body font-medium text-navy">
@@ -238,7 +238,7 @@ export default function SettingsScreen() {
             <View className="px-4 py-3 flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                  <Ionicons name="information-circle" size={20} color="#0B1736" />
+                  <Ionicons name="information-circle" size={20} color="#0B1D3A" />
                 </View>
                 <Text className="text-body font-medium text-navy">
                   App Version

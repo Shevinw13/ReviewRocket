@@ -218,7 +218,7 @@ export default function SendRequestScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={24} color="#0B1736" />
+            <Ionicons name="arrow-back" size={24} color="#0B1D3A" />
           </Pressable>
           <Text className="text-heading font-bold text-navy flex-1">
             Send Review Request
@@ -397,8 +397,8 @@ export default function SendRequestScreen() {
           disabled={!isPhoneValid || isSending}
           className={`rounded-2xl py-4 items-center flex-row justify-center ${
             !isPhoneValid || isSending
-              ? 'bg-rocket-orange/50'
-              : 'bg-rocket-orange'
+              ? 'bg-teal/50'
+              : 'bg-teal'
           }`}
           accessibilityRole="button"
           accessibilityLabel="Send Text"

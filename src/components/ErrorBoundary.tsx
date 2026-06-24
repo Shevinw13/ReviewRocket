@@ -81,7 +81,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           </Text>
           <Pressable
             onPress={this.handleRestart}
-            className="bg-rocket-orange rounded-lg px-8 py-4"
+            className="bg-teal rounded-lg px-8 py-4"
             accessibilityRole="button"
             accessibilityLabel="Restart and return to Dashboard"
           >

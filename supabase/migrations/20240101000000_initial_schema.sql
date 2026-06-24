@@ -1,5 +1,5 @@
--- Review Rocket MVP: Initial Database Schema
--- This migration creates all core tables for the Review Rocket application.
+-- Nudg MVP: Initial Database Schema
+-- This migration creates all core tables for the Nudg application.
 -- Sensitive fields (customer phone, customer name, feedback text) are encrypted
 -- at the application level using AES-256-GCM before storage.
 

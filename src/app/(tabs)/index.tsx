@@ -134,8 +134,8 @@ export default function DashboardScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#FF6B35"
-            colors={['#FF6B35']}
+            tintColor="#0CBFA6"
+            colors={['#0CBFA6']}
           />
         }
       >
@@ -152,8 +152,8 @@ export default function DashboardScreen() {
         {!hasData ? (
           /* Empty State — Welcome Card */
           <View className="bg-white rounded-2xl p-6 border border-light-gray items-center">
-            <View className="w-16 h-16 rounded-full bg-rocket-orange/10 items-center justify-center mb-4">
-              <Ionicons name="rocket-outline" size={32} color="#FF6B35" />
+            <View className="w-16 h-16 rounded-full bg-teal/10 items-center justify-center mb-4">
+              <Ionicons name="rocket-outline" size={32} color="#0CBFA6" />
             </View>
             <Text className="text-body font-bold text-navy text-center mb-2">
               Ready to get your first review?
@@ -163,7 +163,7 @@ export default function DashboardScreen() {
             </Text>
             <Pressable
               onPress={() => router.push('/send-request')}
-              className="bg-rocket-orange rounded-2xl py-4 px-8 flex-row items-center justify-center active:opacity-80"
+              className="bg-teal rounded-2xl py-4 px-8 flex-row items-center justify-center active:opacity-80"
               accessibilityRole="button"
               accessibilityLabel="Send Your First Request"
             >
@@ -181,7 +181,7 @@ export default function DashboardScreen() {
             {/* CTA Button */}
             <Pressable
               onPress={() => router.push('/send-request')}
-              className="mt-6 bg-rocket-orange rounded-2xl py-4 flex-row items-center justify-center active:opacity-80"
+              className="mt-6 bg-teal rounded-2xl py-4 flex-row items-center justify-center active:opacity-80"
               accessibilityRole="button"
               accessibilityLabel="Send Review Request"
             >
@@ -203,7 +203,7 @@ export default function DashboardScreen() {
                     accessibilityRole="link"
                     accessibilityLabel="View all activity"
                   >
-                    <Text className="text-caption font-medium text-rocket-orange">
+                    <Text className="text-caption font-medium text-teal">
                       View all
                     </Text>
                   </Pressable>

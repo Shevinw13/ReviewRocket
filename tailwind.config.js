@@ -1,5 +1,5 @@
 /**
- * Tailwind CSS configuration for Review Rocket.
+ * Tailwind CSS configuration for Nudg.
  * Theme tokens are defined in src/theme/ for programmatic use
  * and mirrored here for Tailwind utility class generation.
  *
@@ -16,10 +16,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        navy: "#0B1736",
-        "rocket-orange": "#FF6B35",
+        navy: "#0B1D3A",
+        teal: "#0CBFA6",
+        mint: "#E6F9F6",
         "success-green": "#22C55E",
-        "card-bg": "#F8FAFC",
+        "card-bg": "#F2F4F7",
         "light-gray": "#E5E7EB",
       },
       spacing: {

@@ -26,7 +26,7 @@ import { type SubscriptionTier, TIER_QUOTAS } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const ONBOARDING_COMPLETE_KEY = '@review_rocket/onboarding_complete';
+const ONBOARDING_COMPLETE_KEY = '@nudg/onboarding_complete';
 
 interface OnboardingPage {
   id: string;
@@ -157,7 +157,7 @@ export default function OnboardingScreen() {
               key={plan.tier}
               className={`rounded-2xl border p-5 mb-4 ${
                 plan.recommended
-                  ? 'border-rocket-orange bg-rocket-orange/5'
+                  ? 'border-teal bg-teal/5'
                   : 'border-light-gray bg-white'
               }`}
             >
@@ -165,14 +165,14 @@ export default function OnboardingScreen() {
                 <View className="flex-row items-center">
                   <Text
                     className={`text-body font-bold ${
-                      plan.recommended ? 'text-rocket-orange' : 'text-navy'
+                      plan.recommended ? 'text-teal' : 'text-navy'
                     }`}
                   >
                     {plan.name}
                   </Text>
                   {plan.trialBadge && (
-                    <View className="ml-2 bg-rocket-orange/10 px-2 py-0.5 rounded-full">
-                      <Text className="text-caption font-semibold text-rocket-orange">
+                    <View className="ml-2 bg-teal/10 px-2 py-0.5 rounded-full">
+                      <Text className="text-caption font-semibold text-teal">
                         {plan.trialBadge}
                       </Text>
                     </View>
@@ -184,11 +184,11 @@ export default function OnboardingScreen() {
                 <Ionicons
                   name="chatbubble-outline"
                   size={14}
-                  color={plan.recommended ? '#FF6B35' : '#6B7280'}
+                  color={plan.recommended ? '#0CBFA6' : '#6B7280'}
                 />
                 <Text
                   className={`text-caption ml-2 ${
-                    plan.recommended ? 'text-rocket-orange/80' : 'text-navy/60'
+                    plan.recommended ? 'text-teal/80' : 'text-navy/60'
                   }`}
                 >
                   {plan.smsLimit.toLocaleString()} SMS messages per month
@@ -198,7 +198,7 @@ export default function OnboardingScreen() {
               {plan.recommended ? (
                 <Pressable
                   onPress={() => handleSelectPlan(plan.tier)}
-                  className="bg-rocket-orange rounded-xl py-3 items-center active:opacity-80"
+                  className="bg-teal rounded-xl py-3 items-center active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel={`Start Free Trial with ${plan.name}`}
                 >
@@ -255,8 +255,8 @@ export default function OnboardingScreen() {
             style={{ width }}
             className="flex-1 items-center justify-center px-8"
           >
-            <View className="w-24 h-24 rounded-full bg-rocket-orange/10 items-center justify-center mb-8">
-              <Ionicons name={item.icon} size={48} color="#FF6B35" />
+            <View className="w-24 h-24 rounded-full bg-teal/10 items-center justify-center mb-8">
+              <Ionicons name={item.icon} size={48} color="#0CBFA6" />
             </View>
             <Text className="text-heading font-bold text-navy text-center mb-4">
               {item.title}
@@ -274,7 +274,7 @@ export default function OnboardingScreen() {
           <View
             key={i}
             className={`w-2 h-2 rounded-full mx-1 ${
-              i === currentIndex ? 'bg-rocket-orange' : 'bg-light-gray'
+              i === currentIndex ? 'bg-teal' : 'bg-light-gray'
             }`}
           />
         ))}
@@ -284,7 +284,7 @@ export default function OnboardingScreen() {
       <View className="px-5 pb-6">
         <Pressable
           onPress={handleNext}
-          className="bg-rocket-orange rounded-2xl py-4 items-center active:opacity-80"
+          className="bg-teal rounded-2xl py-4 items-center active:opacity-80"
           accessibilityRole="button"
           accessibilityLabel={currentIndex === PAGES.length - 1 ? 'Get Started' : 'Next'}
         >

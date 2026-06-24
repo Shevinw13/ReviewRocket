@@ -191,7 +191,7 @@ export default function RootLayout() {
   }, [navigationRef]);
 
   if (IS_MOCK_MODE) {
-    console.log("[ReviewRocket] 🧪 Running in MOCK MODE — no external services");
+    console.log("[Nudg] 🧪 Running in MOCK MODE — no external services");
   }
 
   return (
