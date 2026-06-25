@@ -1,22 +1,31 @@
 /**
  * DashboardMetrics component.
- * Displays the primary "Review Opportunities Created" card and
- * three metric boxes (Positive Responses, Needs Attention, Requests Sent).
- *
- * Requirements: 5.2, 5.3, 5.4
+ * Displays the primary "Review Opportunities Created" card with a toggleable
+ * comparison period (week over week / month over month) and three metric boxes.
  */
 
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { DashboardMetrics as DashboardMetricsData } from '@/types';
 
+export type ComparisonPeriod = 'week' | 'month';
+
 export interface DashboardMetricsProps {
   metrics: DashboardMetricsData;
+  /** Week-over-week data (optional — if not provided, WoW toggle won't show change) */
+  weekOverWeekChange?: number | null;
+  weekCount?: number;
 }
 
-export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
+export function DashboardMetrics({
+  metrics,
+  weekOverWeekChange = null,
+  weekCount,
+}: DashboardMetricsProps) {
+  const [period, setPeriod] = useState<ComparisonPeriod>('month');
+
   const {
     reviewOpportunities,
     monthOverMonthChange,
@@ -25,18 +34,29 @@ export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
     responseRate,
   } = metrics;
 
-  // Format month-over-month display
-  const momDisplay =
-    monthOverMonthChange === null
-      ? 'N/A'
-      : `${monthOverMonthChange >= 0 ? '+' : ''}${monthOverMonthChange}%`;
+  // Determine which values to show based on selected period
+  const currentCount = period === 'month' ? reviewOpportunities : (weekCount ?? reviewOpportunities);
+  const changeValue = period === 'month' ? monthOverMonthChange : weekOverWeekChange;
+  const periodLabel = period === 'month' ? 'this month' : 'this week';
+  const comparisonLabel = period === 'month' ? 'vs last month' : 'vs last week';
 
-  const momColor =
-    monthOverMonthChange === null
+  // Format comparison display
+  const changeDisplay =
+    changeValue === null || changeValue === undefined
+      ? 'N/A'
+      : `${changeValue >= 0 ? '+' : ''}${changeValue}%`;
+
+  const changeColor =
+    changeValue === null || changeValue === undefined
       ? 'text-navy/50'
-      : monthOverMonthChange >= 0
+      : changeValue >= 0
         ? 'text-success-green'
         : 'text-red-500';
+
+  // Toggle between periods
+  const togglePeriod = () => {
+    setPeriod((prev) => (prev === 'month' ? 'week' : 'month'));
+  };
 
   return (
     <View>
@@ -48,25 +68,30 @@ export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
         <View className="flex-row items-end justify-between">
           <View>
             <Text className="text-[40px] font-bold text-navy leading-tight">
-              {reviewOpportunities}
+              {currentCount}
             </Text>
             <Text className="text-caption text-navy/50 mt-1">
-              {reviewOpportunities === 1 ? '1 this month' : `${reviewOpportunities} this month`}
+              {currentCount === 1 ? `1 ${periodLabel}` : `${currentCount} ${periodLabel}`}
             </Text>
           </View>
-          <View className="flex-row items-center bg-card-bg rounded-xl px-3 py-1.5">
-            {monthOverMonthChange !== null && (
+          <Pressable
+            onPress={togglePeriod}
+            className="flex-row items-center bg-card-bg rounded-xl px-3 py-1.5 active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel={`Switch to ${period === 'month' ? 'week over week' : 'month over month'} comparison`}
+          >
+            {changeValue !== null && changeValue !== undefined && (
               <Ionicons
-                name={monthOverMonthChange >= 0 ? 'trending-up' : 'trending-down'}
+                name={changeValue >= 0 ? 'trending-up' : 'trending-down'}
                 size={14}
-                color={monthOverMonthChange >= 0 ? '#22C55E' : '#EF4444'}
+                color={changeValue >= 0 ? '#22C55E' : '#EF4444'}
                 style={{ marginRight: 4 }}
               />
             )}
-            <Text className={`text-caption font-semibold ${momColor}`}>
-              {momDisplay} vs last month
+            <Text className={`text-caption font-semibold ${changeColor}`}>
+              {changeDisplay} {comparisonLabel}
             </Text>
-          </View>
+          </Pressable>
         </View>
       </View>
 
@@ -114,4 +139,3 @@ export function DashboardMetrics({ metrics }: DashboardMetricsProps) {
     </View>
   );
 }
-

@@ -176,7 +176,11 @@ export default function DashboardScreen() {
         ) : (
           <>
             {/* Metrics Section */}
-            <DashboardMetrics metrics={displayMetrics} />
+            <DashboardMetrics
+              metrics={displayMetrics}
+              weekOverWeekChange={metrics?.weekOverWeekChange ?? null}
+              weekCount={metrics?.weekCount ?? 0}
+            />
 
             {/* CTA Button */}
             <Pressable

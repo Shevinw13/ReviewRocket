@@ -1,17 +1,19 @@
 /**
- * Hook to fetch dashboard metrics for the current calendar month.
- * Fetches review opportunities, month-over-month change, positive responses,
- * needs attention count, and total requests sent.
- *
- * Requirements: 5.2, 5.3, 5.4
+ * Hook to fetch dashboard metrics for the current calendar month and week.
+ * Provides both month-over-month and week-over-week comparison data.
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { calculateMonthOverMonth } from '@/utils/metrics';
 import type { DashboardMetrics } from '@/types';
+
+export interface DashboardMetricsWithWeek extends DashboardMetrics {
+  weekOverWeekChange: number | null;
+  weekCount: number;
+}
 
 function getMonthBoundaries() {
   const now = new Date();
@@ -21,13 +23,29 @@ function getMonthBoundaries() {
   return { currentMonthStart, prevMonthStart, prevMonthEnd };
 }
 
+function getWeekBoundaries() {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday
+  const currentWeekStart = new Date(now);
+  currentWeekStart.setDate(now.getDate() - dayOfWeek);
+  currentWeekStart.setHours(0, 0, 0, 0);
+
+  const prevWeekStart = new Date(currentWeekStart);
+  prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+
+  const prevWeekEnd = new Date(currentWeekStart);
+  prevWeekEnd.setMilliseconds(-1);
+
+  return { currentWeekStart, prevWeekStart, prevWeekEnd };
+}
+
 export function useDashboardMetrics() {
   const reviewRequestRepo = useService('reviewRequests');
   const feedbackRepo = useService('feedback');
   const { data: profile } = useBusinessProfile();
   const businessId = profile?.id;
 
-  return useQuery<DashboardMetrics>({
+  return useQuery<DashboardMetricsWithWeek>({
     queryKey: ['dashboard-metrics', businessId],
     queryFn: async () => {
       if (!businessId) {
@@ -38,16 +56,19 @@ export function useDashboardMetrics() {
           needsAttention: 0,
           requestsSent: 0,
           responseRate: null,
+          weekOverWeekChange: null,
+          weekCount: 0,
         };
       }
 
       const { currentMonthStart, prevMonthStart, prevMonthEnd } = getMonthBoundaries();
+      const { currentWeekStart, prevWeekStart, prevWeekEnd } = getWeekBoundaries();
 
-      // Fetch current month count (review opportunities = requests sent this month)
+      // Fetch current month count
       const currentCountResult = await reviewRequestRepo.getMonthlyCount(businessId, currentMonthStart);
       const currentCount = currentCountResult.success ? currentCountResult.data : 0;
 
-      // Fetch previous month count for comparison
+      // Fetch previous month count
       const prevCountResult = await reviewRequestRepo.getPreviousMonthCount(
         businessId,
         prevMonthStart,
@@ -55,14 +76,26 @@ export function useDashboardMetrics() {
       );
       const prevCount = prevCountResult.success ? prevCountResult.data : 0;
 
-      // Calculate month-over-month change
-      const monthOverMonthChange = calculateMonthOverMonth(currentCount, prevCount);
+      // Fetch current week count
+      const weekCountResult = await reviewRequestRepo.getMonthlyCount(businessId, currentWeekStart);
+      const weekCount = weekCountResult.success ? weekCountResult.data : 0;
 
-      // Get feedback records to compute positive/needs attention
+      // Fetch previous week count
+      const prevWeekCountResult = await reviewRequestRepo.getPreviousMonthCount(
+        businessId,
+        prevWeekStart,
+        prevWeekEnd,
+      );
+      const prevWeekCount = prevWeekCountResult.success ? prevWeekCountResult.data : 0;
+
+      // Calculate comparisons
+      const monthOverMonthChange = calculateMonthOverMonth(currentCount, prevCount);
+      const weekOverWeekChange = calculateMonthOverMonth(weekCount, prevWeekCount);
+
+      // Get feedback records for positive/needs attention
       const feedbackResult = await feedbackRepo.getAll(businessId);
       const allFeedback = feedbackResult.success ? feedbackResult.data : [];
 
-      // Filter feedback for current month
       const currentMonthFeedback = allFeedback.filter(
         (f) => new Date(f.createdAt) >= currentMonthStart,
       );
@@ -70,7 +103,7 @@ export function useDashboardMetrics() {
       const positiveResponses = currentMonthFeedback.filter((f) => f.rating >= 4).length;
       const needsAttention = currentMonthFeedback.filter((f) => f.rating <= 3).length;
 
-      // Calculate response rate: (total responses / total requests sent) * 100
+      // Response rate
       const totalResponses = currentMonthFeedback.length;
       const responseRate = currentCount > 0
         ? Math.round((totalResponses / currentCount) * 100)
@@ -83,10 +116,11 @@ export function useDashboardMetrics() {
         needsAttention,
         requestsSent: currentCount,
         responseRate,
+        weekOverWeekChange,
+        weekCount,
       };
     },
     enabled: !!businessId,
-    staleTime: 30_000, // 30 seconds
+    staleTime: 30_000,
   });
 }
-
