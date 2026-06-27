@@ -1,5 +1,5 @@
 /**
- * Nudg color palette.
+ * Nudgli color palette.
  * Brand personality: Modern, Trustworthy, Professional, Fast, Simple.
  * Inspired by Stripe, Ramp, Square, Linear.
  */

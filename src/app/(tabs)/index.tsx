@@ -13,6 +13,7 @@ import {
   ScrollView,
   RefreshControl,
   Pressable,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -116,8 +117,8 @@ export default function DashboardScreen() {
 
   if (isInitialLoading && !profile) {
     return (
-      <SafeAreaView className="flex-1 bg-card-bg" edges={['top']}>
-        <View className="flex-1 items-center justify-center">
+      <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
+        <View className="flex-1 bg-card-bg items-center justify-center">
           <LoadingIndicator size="large" />
         </View>
       </SafeAreaView>
@@ -125,10 +126,10 @@ export default function DashboardScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-card-bg" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="px-5 pb-12"
+        className="flex-1 bg-card-bg"
+        contentContainerClassName="pb-12"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -139,128 +140,146 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Header Section */}
-        <View className="pt-4 pb-6">
-          <Text className="text-heading font-bold text-navy">
-            {profile?.businessName ?? 'Dashboard'}
-          </Text>
-          <Text className="text-body text-navy/60 mt-1">
-            Your review activity
-          </Text>
+        {/* Navy Header Section */}
+        <View className="bg-navy px-5 pt-6 pb-8">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-sm text-white/60">
+                {new Date().getHours() < 12
+                  ? 'Good morning'
+                  : new Date().getHours() < 18
+                    ? 'Good afternoon'
+                    : 'Good evening'}
+              </Text>
+              <Text className="text-2xl font-bold text-white mt-1">
+                {profile?.businessName ?? 'Dashboard'}
+              </Text>
+            </View>
+            <View className="h-10 w-10 rounded-full overflow-hidden">
+              <Image
+                source={require("../../../assets/applogo.png")}
+                className="h-10 w-10"
+                resizeMode="cover"
+              />
+            </View>
+          </View>
         </View>
 
-        {!hasData ? (
-          /* Empty State — Welcome Card */
-          <View className="bg-white rounded-2xl p-6 border border-light-gray items-center">
-            <View className="w-16 h-16 rounded-full bg-teal/10 items-center justify-center mb-4">
-              <Ionicons name="rocket-outline" size={32} color="#0CBFA6" />
-            </View>
-            <Text className="text-body font-bold text-navy text-center mb-2">
-              Ready to get your first review?
-            </Text>
-            <Text className="text-caption text-navy/60 text-center mb-6 px-4">
-              Send a text to your last customer and watch the feedback roll in.
-            </Text>
-            <Pressable
-              onPress={() => router.push('/send-request')}
-              className="bg-teal rounded-2xl py-4 px-8 flex-row items-center justify-center active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Send Your First Request"
-            >
-              <Ionicons name="add" size={22} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text className="text-body font-bold text-white">
-                Send Your First Request
+        {/* Content area overlapping the navy */}
+        <View className="px-5 -mt-4">
+          {!hasData ? (
+            /* Empty State — Welcome Card */
+            <View className="bg-white rounded-2xl p-6 border border-light-gray items-center shadow-sm shadow-black/5">
+              <View className="w-16 h-16 rounded-full bg-teal/10 items-center justify-center mb-4">
+                <Ionicons name="rocket-outline" size={32} color="#0CBFA6" />
+              </View>
+              <Text className="text-body font-bold text-navy text-center mb-2">
+                Ready to get your first review?
               </Text>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            {/* Metrics Section */}
-            <DashboardMetrics
-              metrics={displayMetrics}
-              weekOverWeekChange={metrics?.weekOverWeekChange ?? null}
-              weekCount={metrics?.weekCount ?? 0}
-            />
-
-            {/* CTA Button */}
-            <Pressable
-              onPress={() => router.push('/send-request')}
-              className="mt-6 bg-teal rounded-2xl py-4 flex-row items-center justify-center active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Send Review Request"
-            >
-              <Ionicons name="add" size={22} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text className="text-body font-bold text-white">
-                Send Review Request
+              <Text className="text-caption text-navy/60 text-center mb-6 px-4">
+                Send a text to your last customer and watch the feedback roll in.
               </Text>
-            </Pressable>
-
-            {/* Recent Activity Section */}
-            <View className="mt-8">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-body font-bold text-navy">
-                  Recent Activity
+              <Pressable
+                onPress={() => router.push('/send-request')}
+                className="bg-teal rounded-2xl py-4 px-8 flex-row items-center justify-center active:opacity-80"
+                accessibilityRole="button"
+                accessibilityLabel="Send Your First Request"
+              >
+                <Ionicons name="add" size={22} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text className="text-body font-bold text-white">
+                  Send Your First Request
                 </Text>
-                {activity.length > 0 && (
-                  <Pressable
-                    onPress={() => router.push('/history')}
-                    accessibilityRole="link"
-                    accessibilityLabel="View all activity"
-                  >
-                    <Text className="text-caption font-medium text-teal">
-                      View all
+              </Pressable>
+            </View>
+          ) : (
+            <>
+              {/* Metrics Section */}
+              <DashboardMetrics
+                metrics={displayMetrics}
+                weekOverWeekChange={metrics?.weekOverWeekChange ?? null}
+                weekCount={metrics?.weekCount ?? 0}
+              />
+
+              {/* CTA Button */}
+              <Pressable
+                onPress={() => router.push('/send-request')}
+                className="mt-6 bg-teal rounded-2xl py-4 flex-row items-center justify-center active:opacity-80 shadow-sm shadow-teal/20"
+                accessibilityRole="button"
+                accessibilityLabel="Send Review Request"
+              >
+                <Ionicons name="add" size={22} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text className="text-body font-bold text-white">
+                  Send Review Request
+                </Text>
+              </Pressable>
+
+              {/* Recent Activity Section */}
+              <View className="mt-8">
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="text-body font-bold text-navy">
+                    Recent Activity
+                  </Text>
+                  {activity.length > 0 && (
+                    <Pressable
+                      onPress={() => router.push('/history')}
+                      accessibilityRole="link"
+                      accessibilityLabel="View all activity"
+                    >
+                      <Text className="text-caption font-medium text-teal">
+                        View all
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                {activity.length === 0 ? (
+                  /* Empty State */
+                  <View className="bg-white rounded-2xl p-6 border border-light-gray items-center">
+                    <Ionicons name="chatbubbles-outline" size={32} color="#E5E7EB" />
+                    <Text className="text-body text-navy/40 mt-3 text-center">
+                      No activity yet
                     </Text>
-                  </Pressable>
+                    <Text className="text-caption text-navy/30 mt-1 text-center">
+                      Send your first review request to see feedback here
+                    </Text>
+                  </View>
+                ) : (
+                  /* Activity Items */
+                  <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
+                    {activity.map((item: ActivityItem, index: number) => (
+                      <View
+                        key={item.id}
+                        className={`flex-row items-center px-4 py-3 ${
+                          index < activity.length - 1 ? 'border-b border-light-gray' : ''
+                        }`}
+                      >
+                        {/* Customer Avatar Placeholder */}
+                        <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
+                          <Ionicons name="person" size={18} color="#9CA3AF" />
+                        </View>
+
+                        {/* Customer Info */}
+                        <View className="flex-1">
+                          <Text className="text-body font-medium text-navy" numberOfLines={1}>
+                            {item.customerName || 'Customer'}
+                          </Text>
+                          <View className="flex-row items-center mt-0.5">
+                            {renderStars(item.rating)}
+                          </View>
+                        </View>
+
+                        {/* Time Ago */}
+                        <Text className="text-caption text-navy/40">
+                          {getTimeAgo(new Date(item.createdAt))}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 )}
               </View>
-
-              {activity.length === 0 ? (
-                /* Empty State */
-                <View className="bg-white rounded-2xl p-6 border border-light-gray items-center">
-                  <Ionicons name="chatbubbles-outline" size={32} color="#E5E7EB" />
-                  <Text className="text-body text-navy/40 mt-3 text-center">
-                    No activity yet
-                  </Text>
-                  <Text className="text-caption text-navy/30 mt-1 text-center">
-                    Send your first review request to see feedback here
-                  </Text>
-                </View>
-              ) : (
-                /* Activity Items */
-                <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
-                  {activity.map((item: ActivityItem, index: number) => (
-                    <View
-                      key={item.id}
-                      className={`flex-row items-center px-4 py-3 ${
-                        index < activity.length - 1 ? 'border-b border-light-gray' : ''
-                      }`}
-                    >
-                      {/* Customer Avatar Placeholder */}
-                      <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
-                        <Ionicons name="person" size={18} color="#9CA3AF" />
-                      </View>
-
-                      {/* Customer Info */}
-                      <View className="flex-1">
-                        <Text className="text-body font-medium text-navy" numberOfLines={1}>
-                          {item.customerName || 'Customer'}
-                        </Text>
-                        <View className="flex-row items-center mt-0.5">
-                          {renderStars(item.rating)}
-                        </View>
-                      </View>
-
-                      {/* Time Ago */}
-                      <Text className="text-caption text-navy/40">
-                        {getTimeAgo(new Date(item.createdAt))}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          </>
-        )}
+            </>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,5 +1,5 @@
 /**
- * API request/response DTOs for Nudg.
+ * API request/response DTOs for Nudgli.
  * These types define the contract between the app and backend services.
  */
 

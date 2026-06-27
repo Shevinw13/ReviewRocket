@@ -1,5 +1,5 @@
 /**
- * Domain models for Nudg.
+ * Domain models for Nudgli.
  * These types represent the core business entities.
  */
 

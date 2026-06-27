@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = 'nudg_event_buffer';
+const STORAGE_KEY = 'nudgli_event_buffer';
 const MAX_BUFFER_SIZE = 100;
 
 export interface BufferedEvent {

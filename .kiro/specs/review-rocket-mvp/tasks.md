@@ -166,7 +166,7 @@ This plan implements the Review Rocket iOS app from project scaffolding through 
 
   - [x] 6.2 Create ErrorBoundary component
     - Create `src/components/ErrorBoundary.tsx` wrapping each tab screen
-    - On unhandled exception: capture to Sentry with screen name, device info, anonymized user ID
+    - On unhandled exception: capture to Sentry with screentyg¸ name, device info, anonymized user ID
     - Render friendly error screen with "Restart" button navigating back to Dashboard
     - Ensure app does not crash on unhandled exceptions
     - _Requirements: 11.5, 14.1_

@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
   Pressable,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -126,7 +127,6 @@ export default function LoginScreen() {
       const { error } = result;
 
       if (error.code === ErrorCode.RATE_LIMIT) {
-        // Default 30 minute lockout as per requirement 2.5
         const lockoutMs = 30 * 60 * 1000;
         const endTime = Date.now() + lockoutMs;
         setLockoutEndTime(endTime);
@@ -137,7 +137,6 @@ export default function LoginScreen() {
         return;
       }
 
-      // Check for unverified email (requirement 2.9)
       if (
         error.message.toLowerCase().includes("verification") ||
         error.message.toLowerCase().includes("not confirmed") ||
@@ -147,7 +146,6 @@ export default function LoginScreen() {
         return;
       }
 
-      // Generic error for invalid credentials (requirement 2.2)
       setLoginError("Invalid email or password.");
     },
     [authService, lockoutEndTime, router]
@@ -193,147 +191,160 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      className="flex-1 bg-navy"
     >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 justify-center px-6 py-12">
-          {/* Header */}
-          <View className="mb-10 items-center">
-            <Text className="text-heading font-bold text-navy">
-              Nudg
-            </Text>
-            <Text className="mt-2 text-body text-gray-500">
-              Sign in to your account
-            </Text>
+        {/* Top Brand Section - Navy background */}
+        <View className="items-center pt-20 pb-12 px-6">
+          {/* App Icon */}
+          <View className="mb-5 h-20 w-20 rounded-2xl overflow-hidden">
+            <Image
+              source={require("../../../assets/applogo.png")}
+              className="h-20 w-20"
+              resizeMode="cover"
+            />
           </View>
+          <Text className="text-3xl font-bold text-white tracking-tight">
+            Nudgli
+          </Text>
+          <Text className="mt-3 text-center text-base text-white/60">
+            More reviews, less effort
+          </Text>
+        </View>
 
-          {/* Form Card */}
-          <View className="rounded-2xl bg-card-bg p-6">
-            {/* Error Message */}
-            {loginError && (
-              <View className="mb-4 rounded-lg bg-red-50 p-3">
-                <Text className="text-sm text-red-700">
-                  {isLockedOut
-                    ? `Too many attempts. Try again in ${lockoutRemaining} minute${lockoutRemaining !== 1 ? "s" : ""}.`
-                    : loginError}
-                </Text>
-              </View>
+        {/* Form Card - White rounded card */}
+        <View className="flex-1 rounded-t-3xl bg-white px-6 pt-8 pb-12">
+          <Text className="mb-6 text-center text-lg font-semibold text-navy">
+            Welcome back
+          </Text>
+
+          {/* Error Message */}
+          {loginError && (
+            <View className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3">
+              <Text className="text-sm text-red-700">
+                {isLockedOut
+                  ? `Too many attempts. Try again in ${lockoutRemaining} minute${lockoutRemaining !== 1 ? "s" : ""}.`
+                  : loginError}
+              </Text>
+            </View>
+          )}
+
+          {/* Email Field */}
+          <View className="mb-5">
+            <Text className="mb-2 text-sm font-medium text-navy">
+              Email
+            </Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className="rounded-xl border border-light-gray bg-card-bg px-4 py-4 text-body text-navy"
+                  placeholder="you@example.com"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  editable={!isLockedOut}
+                  accessibilityLabel="Email address"
+                />
+              )}
+            />
+            {errors.email && (
+              <Text className="mt-1 text-caption text-red-600">
+                {errors.email.message}
+              </Text>
             )}
-
-            {/* Email Field */}
-            <View className="mb-4">
-              <Text className="mb-1 text-caption font-medium text-navy">
-                Email
-              </Text>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    className="rounded-lg border border-light-gray bg-white px-4 py-3 text-body text-navy"
-                    placeholder="you@example.com"
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    editable={!isLockedOut}
-                    accessibilityLabel="Email address"
-                  />
-                )}
-              />
-              {errors.email && (
-                <Text className="mt-1 text-caption text-red-600">
-                  {errors.email.message}
-                </Text>
-              )}
-            </View>
-
-            {/* Password Field */}
-            <View className="mb-4">
-              <Text className="mb-1 text-caption font-medium text-navy">
-                Password
-              </Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    className="rounded-lg border border-light-gray bg-white px-4 py-3 text-body text-navy"
-                    placeholder="Enter your password"
-                    placeholderTextColor="#9CA3AF"
-                    secureTextEntry
-                    autoComplete="password"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    editable={!isLockedOut}
-                    accessibilityLabel="Password"
-                  />
-                )}
-              />
-              {errors.password && (
-                <Text className="mt-1 text-caption text-red-600">
-                  {errors.password.message}
-                </Text>
-              )}
-            </View>
-
-            {/* Forgot Password Link */}
-            <TouchableOpacity
-              onPress={() => setShowForgotPassword(true)}
-              className="mb-6 self-end"
-              accessibilityRole="button"
-              accessibilityLabel="Forgot password"
-            >
-              <Text className="text-caption font-medium text-teal">
-                Forgot Password?
-              </Text>
-            </TouchableOpacity>
-
-            {/* Login Button */}
-            <TouchableOpacity
-              onPress={handleSubmit(onLogin)}
-              disabled={isLoading || isLockedOut}
-              className={`rounded-lg py-4 ${
-                isLoading || isLockedOut
-                  ? "bg-teal/50"
-                  : "bg-teal"
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel="Sign in"
-              accessibilityState={{ disabled: isLoading || isLockedOut }}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text className="text-center text-body font-semibold text-white">
-                  Sign In
-                </Text>
-              )}
-            </TouchableOpacity>
           </View>
 
-          {/* Sign Up Link */}
-          <View className="mt-6 flex-row items-center justify-center">
-            <Text className="text-body text-gray-500">
-              Don&apos;t have an account?{" "}
+          {/* Password Field */}
+          <View className="mb-3">
+            <Text className="mb-2 text-sm font-medium text-navy">
+              Password
             </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(auth)/signup")}
-              accessibilityRole="link"
-              accessibilityLabel="Sign up"
-            >
-              <Text className="text-body font-semibold text-teal">
-                Sign Up
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className="rounded-xl border border-light-gray bg-card-bg px-4 py-4 text-body text-navy"
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry
+                  autoComplete="password"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  editable={!isLockedOut}
+                  accessibilityLabel="Password"
+                />
+              )}
+            />
+            {errors.password && (
+              <Text className="mt-1 text-caption text-red-600">
+                {errors.password.message}
               </Text>
-            </TouchableOpacity>
+            )}
           </View>
+
+          {/* Forgot Password Link */}
+          <TouchableOpacity
+            onPress={() => setShowForgotPassword(true)}
+            className="mb-8 self-end"
+            accessibilityRole="button"
+            accessibilityLabel="Forgot password"
+          >
+            <Text className="text-sm font-medium text-teal">
+              Forgot Password?
+            </Text>
+          </TouchableOpacity>
+
+          {/* Login Button */}
+          <TouchableOpacity
+            onPress={handleSubmit(onLogin)}
+            disabled={isLoading || isLockedOut}
+            className={`rounded-xl py-4 ${
+              isLoading || isLockedOut
+                ? "bg-teal/50"
+                : "bg-teal"
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel="Sign in"
+            accessibilityState={{ disabled: isLoading || isLockedOut }}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text className="text-center text-body font-bold text-white">
+                Sign In
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View className="my-6 flex-row items-center">
+            <View className="flex-1 h-px bg-light-gray" />
+            <Text className="mx-4 text-caption text-gray-400">or</Text>
+            <View className="flex-1 h-px bg-light-gray" />
+          </View>
+
+          {/* Create Account Button */}
+          <TouchableOpacity
+            onPress={() => router.push("/(auth)/signup")}
+            className="rounded-xl border-2 border-navy py-4"
+            accessibilityRole="link"
+            accessibilityLabel="Create account"
+          >
+            <Text className="text-center text-body font-bold text-navy">
+              Create Account
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -362,10 +373,9 @@ export default function LoginScreen() {
           </View>
 
           {forgotPasswordSuccess ? (
-            // Success State
             <View className="items-center pt-8">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-success-green/20">
-                <Text className="text-2xl">✓</Text>
+              <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-teal/20">
+                <Text className="text-2xl text-teal">✓</Text>
               </View>
               <Text className="mb-2 text-center text-body font-semibold text-navy">
                 Check your email
@@ -376,35 +386,32 @@ export default function LoginScreen() {
               </Text>
               <TouchableOpacity
                 onPress={closeForgotPasswordModal}
-                className="mt-8 rounded-lg bg-teal px-8 py-3"
+                className="mt-8 rounded-xl bg-teal px-8 py-4"
                 accessibilityRole="button"
                 accessibilityLabel="Back to login"
               >
-                <Text className="text-body font-semibold text-white">
+                <Text className="text-body font-bold text-white">
                   Back to Login
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
-            // Form State
             <View>
               <Text className="mb-6 text-body text-gray-500">
                 Enter your email address and we&apos;ll send you a link to
                 reset your password.
               </Text>
 
-              {/* Forgot Password Error */}
               {forgotPasswordError && (
-                <View className="mb-4 rounded-lg bg-red-50 p-3">
+                <View className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3">
                   <Text className="text-sm text-red-700">
                     {forgotPasswordError}
                   </Text>
                 </View>
               )}
 
-              {/* Email Input */}
               <View className="mb-6">
-                <Text className="mb-1 text-caption font-medium text-navy">
+                <Text className="mb-2 text-sm font-medium text-navy">
                   Email
                 </Text>
                 <Controller
@@ -412,7 +419,7 @@ export default function LoginScreen() {
                   name="email"
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
-                      className="rounded-lg border border-light-gray bg-white px-4 py-3 text-body text-navy"
+                      className="rounded-xl border border-light-gray bg-card-bg px-4 py-4 text-body text-navy"
                       placeholder="you@example.com"
                       placeholderTextColor="#9CA3AF"
                       keyboardType="email-address"
@@ -427,11 +434,10 @@ export default function LoginScreen() {
                 />
               </View>
 
-              {/* Submit Button */}
               <TouchableOpacity
                 onPress={handleForgotSubmit(onForgotPassword)}
                 disabled={forgotPasswordLoading}
-                className={`rounded-lg py-4 ${
+                className={`rounded-xl py-4 ${
                   forgotPasswordLoading
                     ? "bg-teal/50"
                     : "bg-teal"
@@ -443,7 +449,7 @@ export default function LoginScreen() {
                 {forgotPasswordLoading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text className="text-center text-body font-semibold text-white">
+                  <Text className="text-center text-body font-bold text-white">
                     Send Reset Link
                   </Text>
                 )}

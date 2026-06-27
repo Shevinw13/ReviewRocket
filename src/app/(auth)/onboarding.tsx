@@ -26,7 +26,7 @@ import { type SubscriptionTier, TIER_QUOTAS } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const ONBOARDING_COMPLETE_KEY = '@nudg/onboarding_complete';
+const ONBOARDING_COMPLETE_KEY = '@nudgli/onboarding_complete';
 
 interface OnboardingPage {
   id: string;

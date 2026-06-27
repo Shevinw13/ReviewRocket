@@ -67,8 +67,8 @@ export default function SettingsScreen() {
 
   if (isLoading && !profile) {
     return (
-      <SafeAreaView className="flex-1 bg-card-bg" edges={['top']}>
-        <View className="flex-1 items-center justify-center">
+      <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
+        <View className="flex-1 bg-card-bg items-center justify-center">
           <LoadingIndicator size="large" />
         </View>
       </SafeAreaView>
@@ -89,16 +89,19 @@ export default function SettingsScreen() {
   // ─── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView className="flex-1 bg-card-bg" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="px-5 pb-12"
+        className="flex-1 bg-card-bg"
+        contentContainerClassName="pb-12"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View className="pt-4 pb-6">
-          <Text className="text-heading font-bold text-navy">Settings</Text>
+        {/* Navy Header */}
+        <View className="bg-navy px-5 pt-4 pb-8">
+          <Text className="text-2xl font-bold text-white">Settings</Text>
         </View>
+
+        {/* Content */}
+        <View className="px-5 -mt-4">
 
         {/* Account Section */}
         <View className="mb-6">
@@ -265,6 +268,7 @@ export default function SettingsScreen() {
             </Text>
           </View>
         </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

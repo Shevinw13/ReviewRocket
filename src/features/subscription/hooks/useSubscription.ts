@@ -21,9 +21,9 @@ import type { AppError } from '@/types';
 
 /** Apple App Store product IDs mapped to subscription tiers. */
 export const IAP_PRODUCT_IDS: Record<SubscriptionTier, string> = {
-  starter: 'com.nudg.starter.monthly',
-  growth: 'com.nudg.growth.monthly',
-  pro: 'com.nudg.pro.monthly',
+  starter: 'com.nudgli.starter.monthly',
+  growth: 'com.nudgli.growth.monthly',
+  pro: 'com.nudgli.pro.monthly',
 };
 
 // ─── Tier Pricing Info ───────────────────────────────────────────────────────

@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Nudg",
-    "slug": "nudg",
+    "name": "Nudgli",
+    "slug": "nudgli",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "nudg",
+    "scheme": "nudgli",
     "experiments": {
       "typedRoutes": true
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.nudg.app"
+      "bundleIdentifier": "com.nudgli.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -31,8 +31,8 @@
       [
         "@sentry/react-native/expo",
         {
-          "organization": "nudg",
-          "project": "nudg-mobile"
+          "organization": "nudgli",
+          "project": "nudgli-mobile"
         }
       ],
       [

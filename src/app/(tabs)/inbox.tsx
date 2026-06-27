@@ -129,17 +129,18 @@ export default function InboxScreen() {
   // ─── Render ───────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView className="flex-1 bg-card-bg" edges={['top']}>
-      {/* Header */}
-      <View className="px-5 pt-4 pb-2">
-        <Text className="text-heading font-bold text-navy">Inbox</Text>
-        <Text className="text-caption text-navy/50 mt-1">
+    <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
+      {/* Navy Header */}
+      <View className="bg-navy px-5 pt-4 pb-6">
+        <Text className="text-2xl font-bold text-white">Inbox</Text>
+        <Text className="text-sm text-white/60 mt-1">
           Manage customer feedback
         </Text>
       </View>
 
-      {/* Tab Filters */}
-      <View className="flex-row px-5 mb-4 gap-2">
+      <View className="flex-1 bg-card-bg rounded-t-3xl -mt-2 pt-4">
+        {/* Tab Filters */}
+        <View className="flex-row px-5 mb-4 gap-2">
         {/* Needs Attention Tab */}
         <Pressable
           onPress={() => setActiveTab('needs-attention')}
@@ -246,6 +247,7 @@ export default function InboxScreen() {
           )}
         </ScrollView>
       )}
+      </View>
     </SafeAreaView>
   );
 }

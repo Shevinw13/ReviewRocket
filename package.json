@@ -1,5 +1,5 @@
 {
-  "name": "nudg",
+  "name": "nudgli",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
@@ -11,6 +11,7 @@
     "@tanstack/react-query": "^5.80.7",
     "expo": "~56.0.12",
     "expo-constants": "~56.0.5",
+    "expo-linear-gradient": "~56.0.4",
     "expo-linking": "~56.0.6",
     "expo-notifications": "~0.31.1",
     "expo-router": "~56.2.11",

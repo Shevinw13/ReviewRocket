@@ -1,5 +1,5 @@
--- Nudg MVP: Initial Database Schema
--- This migration creates all core tables for the Nudg application.
+-- Nudgli MVP: Initial Database Schema
+-- This migration creates all core tables for the Nudgli application.
 -- Sensitive fields (customer phone, customer name, feedback text) are encrypted
 -- at the application level using AES-256-GCM before storage.
 

@@ -1,5 +1,5 @@
 /**
- * Tailwind CSS configuration for Nudg.
+ * Tailwind CSS configuration for Nudgli.
  * Theme tokens are defined in src/theme/ for programmatic use
  * and mirrored here for Tailwind utility class generation.
  *
