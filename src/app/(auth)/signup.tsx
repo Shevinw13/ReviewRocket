@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,10 @@ import { router } from "expo-router";
 import { signUpSchema, type SignUpFormData } from "@/types/schemas";
 import { useService } from "@/services";
 import { ErrorCode } from "@/types";
+import {
+  GoogleReviewLinkPicker,
+  type GoogleReviewLinkPickerValue,
+} from "@/features/google-review";
 
 /**
  * Signup screen for new business owner registration.
@@ -30,6 +34,7 @@ export default function SignupScreen() {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
@@ -42,6 +47,16 @@ export default function SignupScreen() {
       googleReviewUrl: "",
     },
   });
+
+  const handleBusinessConnected = useCallback(
+    (value: GoogleReviewLinkPickerValue) => {
+      setValue("googleReviewUrl", value.googleReviewUrl, { shouldValidate: true });
+      if (value.source === "places_search" && value.businessName) {
+        setValue("businessName", value.businessName, { shouldValidate: true });
+      }
+    },
+    [setValue],
+  );
 
   const onSubmit = async (data: SignUpFormData) => {
     setServerError(null);
@@ -178,15 +193,18 @@ export default function SignupScreen() {
           )}
         </View>
 
-        {/* Google Review URL */}
-        <FormField
-          label="Google Review URL"
-          error={errors.googleReviewUrl?.message}
-          control={control}
-          name="googleReviewUrl"
-          placeholder="Paste your Google review link here"
-          autoCapitalize="none"
-        />
+        {/* Google Review Link */}
+        <View className="mb-5">
+          <Text className="text-body font-medium text-navy mb-1">
+            Google Review Link
+          </Text>
+          <GoogleReviewLinkPicker onBusinessConnected={handleBusinessConnected} />
+          {errors.googleReviewUrl?.message && (
+            <Text className="text-caption text-red-500 mt-1">
+              {errors.googleReviewUrl.message}
+            </Text>
+          )}
+        </View>
 
         {/* Submit Button */}
         <Pressable

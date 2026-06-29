@@ -17,6 +17,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import {
+  GoogleReviewLinkPicker,
+  type GoogleReviewLinkPickerValue,
+} from '@/features/google-review';
 
 // ─── Validation Schema ───────────────────────────────────────────────────────
 
@@ -52,8 +56,9 @@ export default function EditBusinessScreen() {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
+    setValue,
   } = useForm<EditBusinessFormData>({
     resolver: zodResolver(editBusinessSchema),
     defaultValues: {
@@ -72,6 +77,20 @@ export default function EditBusinessScreen() {
       });
     }
   }, [profile, reset]);
+
+  // ─── Google Review Link Picker Handler ─────────────────────────────────────
+
+  const handleBusinessConnected = useCallback(
+    (value: GoogleReviewLinkPickerValue) => {
+      setValue('googleReviewUrl', value.googleReviewUrl, {
+        shouldValidate: true,
+      });
+      if (value.businessName) {
+        setValue('businessName', value.businessName, { shouldValidate: true });
+      }
+    },
+    [setValue],
+  );
 
   // ─── Save Handler ──────────────────────────────────────────────────────────
 
@@ -180,53 +199,34 @@ export default function EditBusinessScreen() {
             )}
           </View>
 
-          {/* Google Review URL Input */}
+          {/* Google Review Link Picker */}
           <View className="mb-8">
             <Text className="text-sm font-medium text-navy mb-2">
-              Google Review URL
+              Google Review Link
             </Text>
-            <View
-              className={`flex-row items-center border rounded-xl bg-card-bg px-4 ${
-                errors.googleReviewUrl ? 'border-red-500' : 'border-light-gray'
-              }`}
-            >
-              <Ionicons name="link-outline" size={20} color="#9CA3AF" />
-              <Controller
-                control={control}
-                name="googleReviewUrl"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    className="flex-1 ml-3 py-4 text-body text-navy"
-                    placeholder="https://g.page/r/your-business/review"
-                    placeholderTextColor="#9CA3AF"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="url"
-                    accessibilityLabel="Google Review URL"
-                  />
-                )}
-              />
-            </View>
-            {errors.googleReviewUrl?.message && (
-              <Text className="text-caption text-red-500 mt-1">
-                {errors.googleReviewUrl.message}
-              </Text>
-            )}
+            <GoogleReviewLinkPicker
+              initialValue={
+                profile?.googleReviewUrl
+                  ? {
+                      businessName: profile.businessName ?? '',
+                      googleReviewUrl: profile.googleReviewUrl,
+                    }
+                  : undefined
+              }
+              onBusinessConnected={handleBusinessConnected}
+            />
           </View>
 
           {/* Save Button */}
           <Pressable
             onPress={handleSubmit(onSubmit)}
-            disabled={isSaving}
+            disabled={isSaving || !isValid}
             className={`rounded-xl py-4 items-center flex-row justify-center ${
-              isSaving ? 'bg-teal/40' : 'bg-teal'
+              isSaving || !isValid ? 'bg-teal/40' : 'bg-teal'
             }`}
             accessibilityRole="button"
             accessibilityLabel="Save Changes"
-            accessibilityState={{ disabled: isSaving }}
+            accessibilityState={{ disabled: isSaving || !isValid }}
           >
             {isSaving ? (
               <LoadingIndicator size="small" color="#FFFFFF" />

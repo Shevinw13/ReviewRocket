@@ -134,6 +134,12 @@ function createRealServiceRegistry(): ServiceRegistry {
     notifications: new repos.Notification(),
     monitoring: realMonitoringService,
     analytics: realAnalyticsService,
+    inboxItems: new repos.InboxItem(),
+    placesSearch: {
+      async search(_query: string) {
+        return { success: true as const, data: [] };
+      },
+    },
   };
 }
 

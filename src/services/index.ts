@@ -17,6 +17,7 @@ import type { INotificationService } from './interfaces/notification.service';
 import type { IMonitoringService } from './interfaces/monitoring.service';
 import type { IAnalyticsService } from './interfaces/analytics.service';
 import type { IInboxItemRepository } from './interfaces/inbox-item.service';
+import type { IPlacesSearchService } from './interfaces/places-search.service';
 
 // ─── Service Registry Type ───────────────────────────────────────────────────
 
@@ -31,6 +32,7 @@ export interface ServiceRegistry {
   monitoring: IMonitoringService;
   analytics: IAnalyticsService;
   inboxItems: IInboxItemRepository;
+  placesSearch: IPlacesSearchService;
 }
 
 // ─── React Context ───────────────────────────────────────────────────────────
@@ -86,3 +88,4 @@ export type { INotificationService } from './interfaces/notification.service';
 export type { IMonitoringService, ErrorContext, Breadcrumb } from './interfaces/monitoring.service';
 export type { IAnalyticsService, AnalyticsEvent } from './interfaces/analytics.service';
 export type { IInboxItemRepository } from './interfaces/inbox-item.service';
+export type { IPlacesSearchService, PlaceResult } from './interfaces/places-search.service';

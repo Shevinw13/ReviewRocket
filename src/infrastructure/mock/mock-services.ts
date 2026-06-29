@@ -15,6 +15,7 @@ import type { INotificationService } from '@/services/interfaces/notification.se
 import type { IMonitoringService } from '@/services/interfaces/monitoring.service';
 import type { IAnalyticsService } from '@/services/interfaces/analytics.service';
 import type { IInboxItemRepository } from '@/services/interfaces/inbox-item.service';
+import type { IPlacesSearchService } from '@/services/interfaces/places-search.service';
 import type {
   Result,
   AuthUser,
@@ -628,6 +629,40 @@ const mockAuthService = new MockAuthService();
  * Creates a complete ServiceRegistry with mock implementations.
  * All services return realistic test data and succeed immediately.
  */
+// ─── Mock Places Search Service ──────────────────────────────────────────────
+
+const FAKE_PLACES_RESULTS: { placeId: string; name: string; formattedAddress: string; rating?: number }[] = [
+  { placeId: 'ChIJ_example1', name: 'SAW Services', formattedAddress: '123 Main St, Austin, TX', rating: 4.8 },
+  { placeId: 'ChIJ_example2', name: 'SAW Plumbing & HVAC', formattedAddress: '456 Oak Ave, Austin, TX', rating: 4.5 },
+  { placeId: 'ChIJ_example3', name: 'South Austin Plumbing', formattedAddress: '789 Elm St, Austin, TX', rating: 4.2 },
+  { placeId: 'ChIJ_example4', name: 'Southwest Air & Water', formattedAddress: '321 Pine Rd, Austin, TX', rating: 4.6 },
+];
+
+class MockPlacesSearchService implements IPlacesSearchService {
+  async search(query: string): Promise<Result<{ placeId: string; name: string; formattedAddress: string; rating?: number }[]>> {
+    // Simulate 500ms network delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Return empty results for queries shorter than 3 characters
+    if (query.length < 3) {
+      return { success: true, data: [] };
+    }
+
+    // Simulate server error when query is "error" (case-insensitive)
+    if (query.toLowerCase() === 'error') {
+      return {
+        success: false,
+        error: {
+          code: ErrorCode.UNKNOWN,
+          message: 'Search is temporarily unavailable. You can paste your Google Review link below.',
+        },
+      };
+    }
+
+    return { success: true, data: FAKE_PLACES_RESULTS };
+  }
+}
+
 export function createMockServiceRegistry(): ServiceRegistry {
   return {
     auth: mockAuthService,
@@ -639,6 +674,7 @@ export function createMockServiceRegistry(): ServiceRegistry {
     monitoring: new MockMonitoringService(),
     analytics: new MockAnalyticsService(),
     inboxItems: new MockInboxItemRepository(),
+    placesSearch: new MockPlacesSearchService(),
   };
 }
 
