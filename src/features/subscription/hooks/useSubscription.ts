@@ -54,7 +54,7 @@ export const TIER_INFO: TierInfo[] = [
   {
     tier: 'pro',
     name: 'Pro',
-    price: '$79.99/mo',
+    price: '$49.99/mo',
     smsLimit: TIER_QUOTAS.pro,
     productId: IAP_PRODUCT_IDS.pro,
   },
@@ -138,9 +138,7 @@ export function useSubscription(): UseSubscriptionReturn {
           const tierInfo = TIER_INFO.find((t) => t.tier === tier);
           Alert.alert(
             'Confirm Subscription',
-            `Subscribe to ${tierInfo?.name} plan at ${tierInfo?.price}?\n\n` +
-              `This includes ${tierInfo?.smsLimit} SMS messages per month.\n\n` +
-              '(This is a development placeholder. In production, the Apple App Store purchase sheet will appear here.)',
+            `Subscribe to ${tierInfo?.name} plan at ${tierInfo?.price}?\n\nThis includes ${tierInfo?.smsLimit.toLocaleString()} SMS messages per month.`,
             [
               { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
               { text: 'Subscribe', onPress: () => resolve(true) },

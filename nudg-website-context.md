@@ -101,9 +101,9 @@ Key features to highlight:
 
 | Tier | SMS/Month | Best For |
 |------|-----------|----------|
-| Starter | 250 | Solo operators just getting started |
-| Growth | 1,000 | Growing businesses with steady clients |
-| Pro | 5,000 | High-volume service businesses |
+| Starter | 50 | Solo operators just getting started |
+| Growth | 200 | Growing businesses with steady clients |
+| Pro | 1,000 | High-volume service businesses |
 
 - All tiers include all features
 - Subscription managed via Apple App Store
@@ -147,9 +147,9 @@ Show what the customer sees — the actual text conversation:
 - Recent Activity Feed (last 10 ratings, newest first)
 
 ### Subscription Tiers
-- **Starter:** 250 SMS/month (default for new accounts)
-- **Growth:** 1,000 SMS/month
-- **Pro:** 5,000 SMS/month
+- **Starter:** 50 SMS/month — $9.99/mo (default for new accounts)
+- **Growth:** 200 SMS/month — $29.99/mo
+- **Pro:** 1,000 SMS/month — $49.99/mo
 - Managed via Apple In-App Purchase
 - 80% quota warning notification
 - Blocked from sending when quota exceeded → prompted to upgrade

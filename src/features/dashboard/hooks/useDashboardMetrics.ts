@@ -10,6 +10,15 @@ import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { calculateMonthOverMonth } from '@/utils/metrics';
 import type { DashboardMetrics } from '@/types';
 
+// ─── Mock Mode Detection ─────────────────────────────────────────────────────
+
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+
+const IS_MOCK_MODE =
+  !SUPABASE_URL ||
+  SUPABASE_URL === 'https://your-project-id.supabase.co' ||
+  SUPABASE_URL === 'https://mock.supabase.co';
+
 export interface DashboardMetricsWithWeek extends DashboardMetrics {
   weekOverWeekChange: number | null;
   weekCount: number;
@@ -58,6 +67,20 @@ export function useDashboardMetrics() {
           responseRate: null,
           weekOverWeekChange: null,
           weekCount: 0,
+        };
+      }
+
+      // In mock mode, return pre-computed metrics
+      if (IS_MOCK_MODE) {
+        return {
+          reviewOpportunities: 47,
+          monthOverMonthChange: 24,
+          positiveResponses: 34,
+          needsAttention: 6,
+          requestsSent: 47,
+          responseRate: 85,
+          weekOverWeekChange: 12,
+          weekCount: 14,
         };
       }
 

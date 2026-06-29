@@ -8,9 +8,9 @@ export type SubscriptionTier = 'starter' | 'growth' | 'pro';
 
 /** Monthly SMS quotas per subscription tier. */
 export const TIER_QUOTAS: Record<SubscriptionTier, number> = {
-  starter: 250,
-  growth: 1000,
-  pro: 5000,
+  starter: 50,
+  growth: 200,
+  pro: 1000,
 };
 
 /** Business owner profile linked to an auth user. */
@@ -95,7 +95,21 @@ export interface DashboardMetrics {
 /** A single item in the Recent Activity Feed. */
 export interface ActivityItem {
   id: string;
+  type: 'rating' | 'sms_opt_out' | 'sms_opt_in';
   customerName?: string;
-  rating: number;
+  customerPhoneFormatted?: string;
+  rating?: number;
+  createdAt: Date;
+}
+
+/** An inbox notification item for the business owner. */
+export interface InboxItem {
+  id: string;
+  businessId: string;
+  type: 'opt_out' | 'system';
+  title: string;
+  body: string;
+  isDismissed: boolean;
+  metadata: Record<string, unknown> | null;
   createdAt: Date;
 }

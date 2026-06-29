@@ -88,7 +88,7 @@ const PLANS: PlanOption[] = [
   {
     tier: 'pro',
     name: 'Pro',
-    price: '$79.99/mo',
+    price: '$49.99/mo',
     smsLimit: TIER_QUOTAS.pro,
   },
 ];

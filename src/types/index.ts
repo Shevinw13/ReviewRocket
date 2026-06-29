@@ -17,6 +17,7 @@ export {
   type AuditLogEntry,
   type DashboardMetrics,
   type ActivityItem,
+  type InboxItem,
 } from './domain';
 
 // API request/response DTOs

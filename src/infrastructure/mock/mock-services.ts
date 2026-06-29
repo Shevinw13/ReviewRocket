@@ -14,6 +14,7 @@ import type { ISmsService } from '@/services/interfaces/sms.service';
 import type { INotificationService } from '@/services/interfaces/notification.service';
 import type { IMonitoringService } from '@/services/interfaces/monitoring.service';
 import type { IAnalyticsService } from '@/services/interfaces/analytics.service';
+import type { IInboxItemRepository } from '@/services/interfaces/inbox-item.service';
 import type {
   Result,
   AuthUser,
@@ -31,14 +32,16 @@ import type {
   CreateFeedbackDTO,
   NotificationPermissionStatus,
   AppNotification,
+  InboxItem,
+  ActivityItem,
 } from '@/types';
-import { TIER_QUOTAS } from '@/types';
+import { TIER_QUOTAS, ErrorCode } from '@/types';
 
 // ─── Fake Data ───────────────────────────────────────────────────────────────
 
 const FAKE_USER_ID = 'test-user-123';
 const FAKE_BUSINESS_ID = 'biz-001';
-const FAKE_EMAIL = 'alex@smithplumbing.com';
+const FAKE_EMAIL = 'shevinweinstein1@gmail.com';
 
 const FAKE_SESSION: AuthSession = {
   user: {
@@ -54,41 +57,138 @@ const FAKE_SESSION: AuthSession = {
 const FAKE_BUSINESS_PROFILE: BusinessProfile = {
   id: FAKE_BUSINESS_ID,
   authUserId: FAKE_USER_ID,
-  firstName: 'Alex',
-  lastName: 'Smith',
-  businessName: 'Smith Plumbing Co.',
+  firstName: 'Shevin',
+  lastName: 'Weinstein',
+  businessName: 'SAW Services',
   email: FAKE_EMAIL,
-  googleReviewUrl: 'https://google.com/maps/place/smith-plumbing',
+  googleReviewUrl: 'https://google.com/maps/place/saw-services',
   subscriptionTier: 'growth',
-  smsUsedThisPeriod: 23,
+  smsUsedThisPeriod: 47,
   billingPeriodStart: new Date('2024-01-01'),
   createdAt: new Date('2023-06-15'),
   updatedAt: new Date('2024-01-10'),
 };
 
+function generateFakeActivityFeed(): ActivityItem[] {
+  return [
+    {
+      id: 'act-001',
+      type: 'rating',
+      customerName: 'James Mitchell',
+      rating: 5,
+      createdAt: new Date(Date.now() - 25 * 60 * 1000), // 25 min ago
+    },
+    {
+      id: 'act-002',
+      type: 'rating',
+      customerName: 'Rachel Kim',
+      rating: 5,
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    },
+    {
+      id: 'act-003',
+      type: 'rating',
+      customerName: 'David Chen',
+      rating: 4,
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+    },
+    {
+      id: 'act-004',
+      type: 'sms_opt_out',
+      customerName: 'Mark Johnson',
+      customerPhoneFormatted: '(555) 234-8901',
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    },
+    {
+      id: 'act-005',
+      type: 'rating',
+      customerName: 'Sarah Williams',
+      rating: 5,
+      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
+    },
+    {
+      id: 'act-006',
+      type: 'rating',
+      customerName: 'Tom Henderson',
+      rating: 2,
+      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    },
+    {
+      id: 'act-007',
+      type: 'rating',
+      customerName: 'Laura Martinez',
+      rating: 5,
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    },
+    {
+      id: 'act-008',
+      type: 'sms_opt_in',
+      customerName: 'Chris Taylor',
+      customerPhoneFormatted: '(555) 876-5432',
+      createdAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000), // 1.5 days ago
+    },
+    {
+      id: 'act-009',
+      type: 'rating',
+      customerName: 'Nicole Foster',
+      rating: 4,
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+    {
+      id: 'act-010',
+      type: 'rating',
+      customerName: 'Brian O\'Connor',
+      rating: 3,
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    },
+  ];
+}
+
 function generateFakeReviewRequests(): ReviewRequest[] {
   const customers = [
-    { name: 'Sarah Johnson', rating: 5, status: 'rating_received' as const },
-    { name: 'Mike Davis', rating: 4, status: 'rating_received' as const },
-    { name: 'Emily Thompson', rating: 2, status: 'feedback_received' as const },
-    { name: 'John Williams', rating: 5, status: 'rating_received' as const },
-    { name: 'Lisa Chen', rating: 1, status: 'feedback_received' as const },
-    { name: 'Robert Garcia', rating: 5, status: 'rating_received' as const },
-    { name: 'Amanda Foster', rating: 3, status: 'rating_received' as const },
-    { name: 'David Park', rating: 4, status: 'rating_received' as const },
+    { name: 'James Mitchell', rating: 5, status: 'rating_received' as const, service: 'HVAC Repair' },
+    { name: 'Rachel Kim', rating: 5, status: 'rating_received' as const, service: 'AC Installation' },
+    { name: 'David Chen', rating: 4, status: 'rating_received' as const, service: 'Duct Cleaning' },
+    { name: 'Sarah Williams', rating: 5, status: 'rating_received' as const, service: 'Furnace Tune-up' },
+    { name: 'Tom Henderson', rating: 2, status: 'feedback_received' as const, service: 'Water Heater Repair' },
+    { name: 'Laura Martinez', rating: 5, status: 'rating_received' as const, service: 'AC Repair' },
+    { name: 'Nicole Foster', rating: 4, status: 'rating_received' as const, service: 'Thermostat Install' },
+    { name: 'Brian O\'Connor', rating: 3, status: 'feedback_received' as const, service: 'Plumbing Fix' },
+    { name: 'Jessica Park', rating: 5, status: 'rating_received' as const, service: 'HVAC Maintenance' },
+    { name: 'Andrew Walsh', rating: 5, status: 'rating_received' as const, service: 'Drain Cleaning' },
+    { name: 'Maria Torres', rating: 4, status: 'rating_received' as const, service: 'AC Service' },
+    { name: 'Kevin Brooks', rating: 1, status: 'feedback_received' as const, service: 'Emergency Repair' },
+    { name: 'Stephanie Lee', rating: 5, status: 'rating_received' as const, service: 'Furnace Install' },
+    { name: 'Daniel Harris', rating: 5, status: 'rating_received' as const, service: 'Water Heater Install' },
+    { name: 'Patricia Young', rating: 4, status: 'rating_received' as const, service: 'HVAC Repair' },
+    { name: 'Tyler Ross', rating: 2, status: 'feedback_received' as const, service: 'Pipe Repair' },
+    { name: 'Megan Clark', rating: 5, status: 'rating_received' as const, service: 'AC Tune-up' },
+    { name: 'Ryan Cooper', rating: 5, status: 'rating_received' as const, service: 'Duct Install' },
+    { name: 'Hannah Wright', rating: 4, status: 'rating_received' as const, service: 'Thermostat Repair' },
+    { name: 'Jason Miller', rating: 5, status: 'rating_received' as const, service: 'HVAC Install' },
+    { name: 'Ashley Green', rating: 3, status: 'feedback_received' as const, service: 'Plumbing Service' },
+    { name: 'Brandon Lewis', rating: 5, status: 'rating_received' as const, service: 'Water Heater Service' },
+    { name: 'Olivia Scott', rating: 5, status: 'rating_received' as const, service: 'AC Repair' },
+    { name: 'Nathan Adams', rating: 4, status: 'rating_received' as const, service: 'HVAC Tune-up' },
+    { name: 'Samantha Baker', rating: 5, status: 'rating_received' as const, service: 'Furnace Repair' },
+    { name: 'Derek Hunt', rating: 2, status: 'feedback_received' as const, service: 'Emergency HVAC' },
+    { name: 'Christina Diaz', rating: 5, status: 'rating_received' as const, service: 'AC Installation' },
+    { name: 'Marcus Bell', rating: 4, status: 'rating_received' as const, service: 'Duct Cleaning' },
+    { name: 'Amy Rivera', rating: 5, status: 'rating_received' as const, service: 'Water Heater Repair' },
+    { name: 'Justin Coleman', rating: 5, status: 'rating_received' as const, service: 'HVAC Service' },
   ];
 
   return customers.map((c, i) => ({
     id: `rr-${String(i + 1).padStart(3, '0')}`,
     businessId: FAKE_BUSINESS_ID,
-    customerPhone: `+1555010${String(i).padStart(4, '0')}`,
+    customerPhone: `+1555${String(100 + i).padStart(3, '0')}${String(1000 + i).padStart(4, '0')}`,
     customerName: c.name,
-    serviceType: ['Plumbing Repair', 'Drain Cleaning', 'Water Heater Install', 'Pipe Replacement'][i % 4],
+    serviceType: c.service,
     status: c.status,
     rating: c.rating,
-    sentAt: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000),
-    feedbackReceivedAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
-    createdAt: new Date(Date.now() - (i + 1) * 24 * 60 * 60 * 1000),
+    sentAt: new Date(Date.now() - (i + 1) * 12 * 60 * 60 * 1000),
+    feedbackReceivedAt: new Date(Date.now() - i * 12 * 60 * 60 * 1000),
+    createdAt: new Date(Date.now() - (i + 1) * 12 * 60 * 60 * 1000),
   }));
 }
 
@@ -96,41 +196,58 @@ function generateFakeFeedbackRecords(): FeedbackRecord[] {
   return [
     {
       id: 'fb-001',
-      reviewRequestId: 'rr-003',
+      reviewRequestId: 'rr-005',
       businessId: FAKE_BUSINESS_ID,
       rating: 2,
-      feedbackText: "Technician arrived late and I wasn't updated.",
+      feedbackText: "The technician was 45 minutes late and didn't call ahead. The repair itself was fine but the communication needs work.",
+      isResolved: false,
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    },
+    {
+      id: 'fb-002',
+      reviewRequestId: 'rr-008',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 3,
+      feedbackText: "Work was okay but I was quoted $150 and ended up paying $220. Would have been nice to know about the extra costs upfront.",
+      isResolved: false,
+      createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+    },
+    {
+      id: 'fb-003',
+      reviewRequestId: 'rr-012',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 1,
+      feedbackText: "Called for an emergency at 8pm and no one answered. Had to find another service. Very disappointing.",
       isResolved: false,
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     },
     {
-      id: 'fb-002',
-      reviewRequestId: 'rr-005',
-      businessId: FAKE_BUSINESS_ID,
-      rating: 1,
-      feedbackText: 'Pricing was higher than expected.',
-      isResolved: false,
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 'fb-003',
-      reviewRequestId: 'rr-007',
-      businessId: FAKE_BUSINESS_ID,
-      rating: 3,
-      feedbackText: 'Work was fine but communication could be better.',
-      isResolved: true,
-      resolvedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    },
-    {
       id: 'fb-004',
-      reviewRequestId: 'rr-008',
+      reviewRequestId: 'rr-016',
       businessId: FAKE_BUSINESS_ID,
       rating: 2,
-      feedbackText: 'Had to call back for a follow-up repair.',
+      feedbackText: "Pipe repair started leaking again after two days. Need someone to come back and fix it properly.",
+      isResolved: false,
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
+    {
+      id: 'fb-005',
+      reviewRequestId: 'rr-021',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 3,
       isResolved: true,
-      resolvedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      resolvedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    },
+    {
+      id: 'fb-006',
+      reviewRequestId: 'rr-026',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 2,
+      feedbackText: "Scheduled between 9-12 and technician showed up at 1:30. I had to take the whole morning off work for nothing.",
+      isResolved: true,
+      resolvedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
     },
   ];
 }
@@ -197,6 +314,18 @@ class MockBusinessProfileRepository implements IBusinessProfileRepository {
     return { success: true, data: { ...this._profile } };
   }
 
+  async update(
+    _businessId: string,
+    data: Partial<Pick<BusinessProfile, 'firstName' | 'lastName' | 'businessName' | 'googleReviewUrl'>>,
+  ): Promise<Result<BusinessProfile>> {
+    if (data.firstName !== undefined) this._profile.firstName = data.firstName;
+    if (data.lastName !== undefined) this._profile.lastName = data.lastName;
+    if (data.businessName !== undefined) this._profile.businessName = data.businessName;
+    if (data.googleReviewUrl !== undefined) this._profile.googleReviewUrl = data.googleReviewUrl;
+    this._profile.updatedAt = new Date();
+    return { success: true, data: { ...this._profile } };
+  }
+
   async updateSubscriptionTier(
     _businessId: string,
     tier: SubscriptionTier,
@@ -259,7 +388,7 @@ class MockReviewRequestRepository implements IReviewRequestRepository {
   }
 
   async getMonthlyCount(_businessId: string, _monthStart: Date): Promise<Result<number>> {
-    return { success: true, data: 17 };
+    return { success: true, data: 47 };
   }
 
   async getPreviousMonthCount(
@@ -267,7 +396,7 @@ class MockReviewRequestRepository implements IReviewRequestRepository {
     _prevMonthStart: Date,
     _prevMonthEnd: Date,
   ): Promise<Result<number>> {
-    return { success: true, data: 12 };
+    return { success: true, data: 38 };
   }
 
   async updateWithRating(id: string, rating: number): Promise<Result<ReviewRequest>> {
@@ -345,7 +474,40 @@ class MockFeedbackRepository implements IFeedbackRepository {
   }
 }
 
+// ─── Mock Inbox Item Repository ──────────────────────────────────────────────
+
+class MockInboxItemRepository implements IInboxItemRepository {
+  private _items: InboxItem[] = [
+    {
+      id: 'inbox-opt-out-001',
+      businessId: FAKE_BUSINESS_ID,
+      type: 'opt_out',
+      title: 'Customer Opted Out',
+      body: 'Mark Johnson has chosen to stop receiving SMS messages from your business. Future review requests cannot be sent to this phone number unless they opt back in.',
+      isDismissed: false,
+      metadata: { customerPhone: '(555) 234-8901' },
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    },
+  ];
+
+  async getActive(_businessId: string): Promise<Result<InboxItem[]>> {
+    const active = this._items.filter((item) => !item.isDismissed);
+    return { success: true, data: active };
+  }
+
+  async dismiss(itemId: string): Promise<Result<void>> {
+    const item = this._items.find((i) => i.id === itemId);
+    if (item) {
+      item.isDismissed = true;
+    }
+    return { success: true, data: undefined };
+  }
+}
+
 // ─── Mock SMS Service ────────────────────────────────────────────────────────
+
+/** Hardcoded phone number that simulates an opted-out customer for local testing. */
+const OPTED_OUT_PHONE = '5550000000';
 
 class MockSmsService implements ISmsService {
   private _sentNumbers = new Map<string, string>(); // phone → ISO date
@@ -355,6 +517,17 @@ class MockSmsService implements ISmsService {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const normalizedPhone = params.phoneNumber.replace(/\D/g, '');
+
+    // Simulate opt-out error for hardcoded opted-out number
+    if (normalizedPhone === OPTED_OUT_PHONE || normalizedPhone === `1${OPTED_OUT_PHONE}`) {
+      return {
+        success: false,
+        error: {
+          code: ErrorCode.OPT_OUT,
+          message: 'This customer has opted out of receiving SMS messages.',
+        },
+      };
+    }
 
     // Check if we've already sent to this number (simulate duplicate detection)
     const previousDate = this._sentNumbers.get(normalizedPhone);
@@ -465,6 +638,7 @@ export function createMockServiceRegistry(): ServiceRegistry {
     notifications: new MockNotificationService(),
     monitoring: new MockMonitoringService(),
     analytics: new MockAnalyticsService(),
+    inboxItems: new MockInboxItemRepository(),
   };
 }
 
@@ -474,4 +648,12 @@ export function createMockServiceRegistry(): ServiceRegistry {
  */
 export function getMockAuthService(): IAuthService {
   return mockAuthService;
+}
+
+/**
+ * Returns mock activity feed data including opt-out/opt-in entries.
+ * Used by the useRecentActivity hook in mock mode.
+ */
+export function getMockActivityFeed(): ActivityItem[] {
+  return generateFakeActivityFeed();
 }

@@ -1,17 +1,18 @@
 /**
  * Settings screen (Settings tab).
- * Displays account info, subscription/usage, notifications status,
- * app version, and logout action.
+ * Displays account info, subscription/usage, notifications toggle,
+ * support mailto, website link, app version, and logout action.
  *
- * Requirements: 8.2, 2.7
+ * Requirements: 8.2, 2.7, 12.1, 12.2, 12.3, 13.1, 14.1, 14.2, 15.1, 15.2
  */
 
-import { useCallback } from 'react';
-import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
+import { useCallback, useState, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, Alert, Switch, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
 
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useAuthContext } from '@/features/auth/context/AuthContext';
@@ -36,13 +37,76 @@ function getUsagePercentage(used: number, quota: number): number {
 export default function SettingsScreen() {
   const { signOut } = useAuthContext();
   const { data: profile, isLoading, refetch } = useBusinessProfile();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // Refresh profile data each time the screen is focused (Req 8.2)
+  // Check current notification permission status on mount and focus
+  const checkNotificationStatus = useCallback(async () => {
+    const { status } = await Notifications.getPermissionsAsync();
+    setNotificationsEnabled(status === 'granted');
+  }, []);
+
+  useEffect(() => {
+    checkNotificationStatus();
+  }, [checkNotificationStatus]);
+
+  // Refresh profile data and notification status each time the screen is focused (Req 8.2)
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [refetch]),
+      checkNotificationStatus();
+    }, [refetch, checkNotificationStatus]),
   );
+
+  // ─── Notifications Toggle Handler (Req 12.1, 12.2, 12.3) ────────────────
+
+  const handleNotificationsToggle = useCallback(async (value: boolean) => {
+    if (value) {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status === 'granted') {
+        setNotificationsEnabled(true);
+      } else {
+        // Permission denied — inform user to enable in device settings
+        Alert.alert(
+          'Notifications Disabled',
+          'To enable push notifications, please go to your device settings and allow notifications for Nudgli.',
+          [
+            { text: 'OK', style: 'default' },
+            {
+              text: 'Open Settings',
+              onPress: () => {
+                if (Platform.OS === 'ios') {
+                  Linking.openURL('app-settings:');
+                } else {
+                  Linking.openSettings();
+                }
+              },
+            },
+          ],
+        );
+        setNotificationsEnabled(false);
+      }
+    } else {
+      setNotificationsEnabled(false);
+    }
+  }, []);
+
+  // ─── Support & Website Handlers (Req 14.1, 14.2, 15.1, 15.2) ─────────────
+
+  const handleSupportPress = useCallback(async () => {
+    try {
+      await Linking.openURL('mailto:support@nudgli.app');
+    } catch {
+      Alert.alert('Unable to open email', 'Please email support@nudgli.app manually.');
+    }
+  }, []);
+
+  const handleWebsitePress = useCallback(async () => {
+    try {
+      await Linking.openURL('https://nudgli.app');
+    } catch {
+      Alert.alert('Unable to open browser', 'Please visit https://nudgli.app manually.');
+    }
+  }, []);
 
   // ─── Logout Handler ───────────────────────────────────────────────────────
 
@@ -109,9 +173,14 @@ export default function SettingsScreen() {
             Account
           </Text>
           <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
-            <View className="px-4 py-3 border-b border-light-gray flex-row items-center">
+            <Pressable
+              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Edit Business"
+              onPress={() => router.push('/edit-business')}
+            >
               <View className="w-10 h-10 rounded-full bg-teal/10 items-center justify-center mr-3">
-                <Ionicons name="business" size={20} color="#0CBFA6" />
+                <Ionicons name="business-outline" size={20} color="#0CBFA6" />
               </View>
               <View className="flex-1">
                 <Text className="text-body font-semibold text-navy">
@@ -119,29 +188,42 @@ export default function SettingsScreen() {
                 </Text>
                 <Text className="text-caption text-navy/50">Business</Text>
               </View>
-            </View>
-            <View className="px-4 py-3 border-b border-light-gray flex-row items-center">
+              <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
+            </Pressable>
+            <Pressable
+              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Edit User Profile"
+              onPress={() => router.push('/edit-profile')}
+            >
               <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                <Ionicons name="person" size={20} color="#0B1D3A" />
+                <Ionicons name="person-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
                 <Text className="text-body font-medium text-navy">
                   {profile ? `${profile.firstName} ${profile.lastName}` : '—'}
                 </Text>
-                <Text className="text-caption text-navy/50">Owner</Text>
+                <Text className="text-caption text-navy/50">User Profile</Text>
               </View>
-            </View>
-            <View className="px-4 py-3 flex-row items-center">
+              <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
+            </Pressable>
+            <Pressable
+              className="px-4 py-3 flex-row items-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Manage Subscription"
+              onPress={() => router.push('/subscription')}
+            >
               <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                <Ionicons name="mail" size={20} color="#0B1D3A" />
+                <Ionicons name="card-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
-                <Text className="text-body font-medium text-navy" numberOfLines={1}>
-                  {profile?.email ?? '—'}
+                <Text className="text-body font-medium text-navy">
+                  Subscription
                 </Text>
-                <Text className="text-caption text-navy/50">Email</Text>
+                <Text className="text-caption text-navy/50">Manage your plan</Text>
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
+            </Pressable>
           </View>
         </View>
 
@@ -203,7 +285,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Notifications Section */}
+        {/* Notifications Section (Req 12.1, 12.2, 12.3) */}
         <View className="mb-6">
           <Text className="text-caption font-semibold text-navy/50 uppercase tracking-wide mb-3">
             Notifications
@@ -212,7 +294,7 @@ export default function SettingsScreen() {
             <View className="px-4 py-3 flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                  <Ionicons name="notifications" size={20} color="#0B1D3A" />
+                  <Ionicons name="notifications-outline" size={20} color="#0B1D3A" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-body font-medium text-navy">
@@ -223,25 +305,69 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <View className="bg-success-green/10 px-2 py-0.5 rounded-full">
-                <Text className="text-caption font-medium text-success-green">
-                  Enabled
-                </Text>
-              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleNotificationsToggle}
+                trackColor={{ false: '#E5E7EB', true: '#0CBFA6' }}
+                thumbColor="#FFFFFF"
+                accessibilityRole="switch"
+                accessibilityLabel="Toggle push notifications"
+              />
             </View>
           </View>
         </View>
 
-        {/* About Section */}
+        {/* Support & About Section (Req 14.1, 14.2, 15.1, 15.2, 13.1) */}
         <View className="mb-8">
           <Text className="text-caption font-semibold text-navy/50 uppercase tracking-wide mb-3">
             About
           </Text>
           <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
+            {/* Support Row */}
+            <Pressable
+              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Contact Support"
+              onPress={handleSupportPress}
+            >
+              <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
+                <Ionicons name="mail-outline" size={20} color="#0B1D3A" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-body font-medium text-navy">
+                  Support
+                </Text>
+                <Text className="text-caption text-navy/50">
+                  support@nudgli.app
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
+            </Pressable>
+            {/* Website Row */}
+            <Pressable
+              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Visit Website"
+              onPress={handleWebsitePress}
+            >
+              <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
+                <Ionicons name="globe-outline" size={20} color="#0B1D3A" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-body font-medium text-navy">
+                  Website
+                </Text>
+                <Text className="text-caption text-navy/50">
+                  nudgli.app
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
+            </Pressable>
+            {/* App Version Row */}
             <View className="px-4 py-3 flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                  <Ionicons name="information-circle" size={20} color="#0B1D3A" />
+                  <Ionicons name="information-circle-outline" size={20} color="#0B1D3A" />
                 </View>
                 <Text className="text-body font-medium text-navy">
                   App Version

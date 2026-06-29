@@ -1,13 +1,13 @@
 /**
  * RecentActivityFeed — Standalone reusable component displaying
- * the most recent customer ratings with customer name, star icons,
- * and time-ago labels.
+ * the most recent activity items including customer ratings,
+ * SMS opt-out events, and SMS opt-in events.
  *
  * Props:
  * - items: ActivityItem[] (caller should pre-sort newest-first and limit to 10)
  * - emptyMessage?: custom empty state text
  *
- * Requirements: 5.6, 5.8
+ * Requirements: 3.1, 3.3, 3.4, 5.3, 5.6, 5.8
  */
 
 import { View, Text } from 'react-native';
@@ -53,6 +53,84 @@ function renderStars(rating: number) {
   return stars;
 }
 
+/** Returns the display name for an activity item. */
+function getDisplayName(item: ActivityItem): string {
+  return item.customerName || item.customerPhoneFormatted || 'Customer';
+}
+
+/** Returns the description text for opt-out/opt-in items. */
+function getActivityDescription(item: ActivityItem): string {
+  const name = getDisplayName(item);
+  if (item.type === 'sms_opt_out') {
+    return `${name} opted out of SMS messaging`;
+  }
+  if (item.type === 'sms_opt_in') {
+    return `${name} opted back in to SMS messaging`;
+  }
+  return '';
+}
+
+// ─── Activity Item Row ───────────────────────────────────────────────────────
+
+function RatingActivityRow({ item }: { item: ActivityItem }) {
+  return (
+    <>
+      {/* Customer Avatar Placeholder */}
+      <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
+        <Ionicons name="person" size={18} color="#9CA3AF" />
+      </View>
+
+      {/* Customer Info */}
+      <View className="flex-1">
+        <Text className="text-body font-medium text-navy" numberOfLines={1}>
+          {getDisplayName(item)}
+        </Text>
+        {item.rating != null && (
+          <View className="flex-row items-center mt-0.5">
+            {renderStars(item.rating)}
+          </View>
+        )}
+      </View>
+    </>
+  );
+}
+
+function OptOutActivityRow({ item }: { item: ActivityItem }) {
+  return (
+    <>
+      {/* Informational Icon */}
+      <View className="w-9 h-9 rounded-full bg-teal/10 items-center justify-center mr-3">
+        <Ionicons name="information-circle" size={20} color="#0CBFA6" />
+      </View>
+
+      {/* Description */}
+      <View className="flex-1">
+        <Text className="text-body font-medium text-navy" numberOfLines={2}>
+          {getActivityDescription(item)}
+        </Text>
+      </View>
+    </>
+  );
+}
+
+function OptInActivityRow({ item }: { item: ActivityItem }) {
+  return (
+    <>
+      {/* Positive Icon */}
+      <View className="w-9 h-9 rounded-full bg-green-50 items-center justify-center mr-3">
+        <Ionicons name="checkmark-circle-outline" size={20} color="#22C55E" />
+      </View>
+
+      {/* Description */}
+      <View className="flex-1">
+        <Text className="text-body font-medium text-navy" numberOfLines={2}>
+          {getActivityDescription(item)}
+        </Text>
+      </View>
+    </>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function RecentActivityFeed({
@@ -79,23 +157,10 @@ export function RecentActivityFeed({
             index < items.length - 1 ? 'border-b border-light-gray' : ''
           }`}
         >
-          {/* Customer Avatar Placeholder */}
-          <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
-            <Ionicons name="person" size={18} color="#9CA3AF" />
-          </View>
-
-          {/* Customer Info */}
-          <View className="flex-1">
-            <Text
-              className="text-body font-medium text-navy"
-              numberOfLines={1}
-            >
-              {item.customerName || 'Customer'}
-            </Text>
-            <View className="flex-row items-center mt-0.5">
-              {renderStars(item.rating)}
-            </View>
-          </View>
+          {/* Render row content based on type */}
+          {item.type === 'rating' && <RatingActivityRow item={item} />}
+          {item.type === 'sms_opt_out' && <OptOutActivityRow item={item} />}
+          {item.type === 'sms_opt_in' && <OptInActivityRow item={item} />}
 
           {/* Time Ago */}
           <Text className="text-caption text-navy/40">

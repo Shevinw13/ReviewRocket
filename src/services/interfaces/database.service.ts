@@ -41,6 +41,10 @@ export interface IFeedbackRepository {
 
 export interface IBusinessProfileRepository {
   getByOwnerId(ownerId: string): Promise<Result<BusinessProfile>>;
+  update(
+    businessId: string,
+    data: Partial<Pick<BusinessProfile, 'firstName' | 'lastName' | 'businessName' | 'googleReviewUrl'>>,
+  ): Promise<Result<BusinessProfile>>;
   updateSubscriptionTier(
     businessId: string,
     tier: SubscriptionTier,

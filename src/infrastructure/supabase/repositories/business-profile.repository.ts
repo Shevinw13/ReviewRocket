@@ -112,6 +112,56 @@ export class SupabaseBusinessProfileRepository implements IBusinessProfileReposi
   }
 
   /**
+   * Updates editable business profile fields (firstName, lastName, businessName, googleReviewUrl).
+   * Maps camelCase fields to snake_case columns before writing.
+   */
+  async update(
+    businessId: string,
+    data: Partial<Pick<BusinessProfile, 'firstName' | 'lastName' | 'businessName' | 'googleReviewUrl'>>,
+  ): Promise<Result<BusinessProfile>> {
+    try {
+      // Map camelCase fields to snake_case columns
+      const updatePayload: Record<string, string> = {};
+      if (data.firstName !== undefined) updatePayload.first_name = data.firstName;
+      if (data.lastName !== undefined) updatePayload.last_name = data.lastName;
+      if (data.businessName !== undefined) updatePayload.business_name = data.businessName;
+      if (data.googleReviewUrl !== undefined) updatePayload.google_review_url = data.googleReviewUrl;
+
+      const { data: row, error } = await supabase
+        .from('business_owners')
+        .update({ ...updatePayload, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+        .select('*')
+        .single();
+
+      if (error) {
+        return {
+          success: false,
+          error: {
+            code: mapDbError(error),
+            message: error.message,
+            details: error,
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: mapRowToProfile(row as BusinessOwnerRow),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: {
+          code: ErrorCode.NETWORK_ERROR,
+          message: err instanceof Error ? err.message : 'An unexpected error occurred updating business profile',
+          details: err,
+        },
+      };
+    }
+  }
+
+  /**
    * Updates the subscription tier for a business and returns the updated profile.
    * Writes an audit log entry for the tier change.
    */

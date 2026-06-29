@@ -16,6 +16,7 @@ import type { ISmsService } from './interfaces/sms.service';
 import type { INotificationService } from './interfaces/notification.service';
 import type { IMonitoringService } from './interfaces/monitoring.service';
 import type { IAnalyticsService } from './interfaces/analytics.service';
+import type { IInboxItemRepository } from './interfaces/inbox-item.service';
 
 // ─── Service Registry Type ───────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ export interface ServiceRegistry {
   notifications: INotificationService;
   monitoring: IMonitoringService;
   analytics: IAnalyticsService;
+  inboxItems: IInboxItemRepository;
 }
 
 // ─── React Context ───────────────────────────────────────────────────────────
@@ -83,3 +85,4 @@ export type { ISmsService } from './interfaces/sms.service';
 export type { INotificationService } from './interfaces/notification.service';
 export type { IMonitoringService, ErrorContext, Breadcrumb } from './interfaces/monitoring.service';
 export type { IAnalyticsService, AnalyticsEvent } from './interfaces/analytics.service';
+export type { IInboxItemRepository } from './interfaces/inbox-item.service';

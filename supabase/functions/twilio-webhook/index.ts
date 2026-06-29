@@ -3,9 +3,10 @@
  *
  * Handles inbound SMS replies from customers via Twilio webhooks.
  * Processes the conversation flow: rating → positive/negative routing → feedback text.
+ * Also handles opt-out (STOP) and opt-in (START) notifications from Twilio.
  * Returns TwiML XML responses to Twilio for immediate reply delivery.
  *
- * Requirements: 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 10.4
+ * Requirements: 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 10.4, 1.1, 1.2, 1.3, 1.4, 5.1, 5.3
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -18,6 +19,10 @@ import {
   incrementInvalidResponseCount,
   markConversationEnded,
   writeAuditLog,
+  createOptOutRecord,
+  deactivateOptOutRecord,
+  createInboxItem,
+  createActivityFeedEntry,
 } from "../_shared/adapters/supabase.adapter.ts";
 import {
   buildPositiveResponse,
@@ -28,8 +33,13 @@ import {
   buildEmptyResponse,
 } from "../_shared/adapters/twilio.adapter.ts";
 import { hashPhone } from "../_shared/utils/hash.ts";
-import { encrypt } from "../_shared/utils/encryption.ts";
+import { encrypt, decrypt } from "../_shared/utils/encryption.ts";
 import { sanitizeForLogging } from "../_shared/utils/sanitize.ts";
+import {
+  formatOptOutInboxBody,
+  formatOptOutActivityDescription,
+  formatOptInActivityDescription,
+} from "../_shared/utils/opt-out-format.ts";
 
 /** Maximum hours after which a conversation expires. */
 const CONVERSATION_EXPIRY_HOURS = 72;
@@ -39,6 +49,62 @@ const MAX_INVALID_RESPONSES = 2;
 
 /** Maximum characters to store from feedback text. */
 const MAX_FEEDBACK_TEXT_LENGTH = 500;
+
+/** Keywords that indicate an opt-out request (case-insensitive). */
+const OPT_OUT_KEYWORDS = ["stop", "unsubscribe", "cancel"];
+
+/** Keywords that indicate an opt-in request (case-insensitive). */
+const OPT_IN_KEYWORDS = ["start", "unstop"];
+
+/**
+ * Detect if the incoming message is an opt-out notification.
+ * Checks Twilio's OptOutType field or Body content for STOP keywords.
+ */
+export function isOptOut(optOutType: string, body: string): boolean {
+  if (optOutType.toUpperCase() === "STOP") {
+    return true;
+  }
+  const normalizedBody = body.trim().toLowerCase();
+  return OPT_OUT_KEYWORDS.includes(normalizedBody);
+}
+
+/**
+ * Detect if the incoming message is an opt-in notification.
+ * Checks Twilio's OptOutType field or Body content for START keywords.
+ */
+export function isOptIn(optOutType: string, body: string): boolean {
+  if (optOutType.toUpperCase() === "START") {
+    return true;
+  }
+  const normalizedBody = body.trim().toLowerCase();
+  return OPT_IN_KEYWORDS.includes(normalizedBody);
+}
+
+/**
+ * Look up the business ID and customer name from review_requests by phone hash.
+ * Returns the most recent review request's business_id and customer_name_encrypted.
+ */
+async function lookupBusinessByPhoneHash(
+  client: ReturnType<typeof createSupabaseClient>,
+  phoneHash: string,
+): Promise<{ businessId: string; customerNameEncrypted?: string } | null> {
+  const { data, error } = await client
+    .from("review_requests")
+    .select("business_id, customer_name_encrypted")
+    .eq("customer_phone_hash", phoneHash)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    businessId: data.business_id,
+    customerNameEncrypted: data.customer_name_encrypted || undefined,
+  };
+}
 
 /**
  * Parse a rating from the SMS body.
@@ -136,15 +202,26 @@ serve(async (req: Request): Promise<Response> => {
   // 1. Parse Twilio webhook payload (application/x-www-form-urlencoded)
   let from: string;
   let body: string;
+  let optOutType: string;
 
   try {
     const text = await req.text();
     const params = new URLSearchParams(text);
     from = params.get("From") || "";
     body = params.get("Body") || "";
+    optOutType = params.get("OptOutType") || "";
   } catch {
     console.error("[twilio-webhook] Failed to parse webhook payload");
     return twimlResponse(buildEmptyResponse());
+  }
+
+  // 2. Check for opt-out or opt-in before other processing
+  if (isOptOut(optOutType, body)) {
+    return await handleOptOut(from);
+  }
+
+  if (isOptIn(optOutType, body)) {
+    return await handleOptIn(from);
   }
 
   if (!from || !body) {
@@ -365,4 +442,192 @@ async function handleAwaitingFeedbackText(
 
   // Send thank you response (Requirement 4.5)
   return twimlResponse(buildThankYouResponse());
+}
+
+/**
+ * Handle an opt-out notification (customer texted STOP/UNSUBSCRIBE/CANCEL).
+ * Creates opt-out record, inbox item, and activity feed entry.
+ * Returns empty TwiML (Twilio handles the STOP confirmation at carrier level).
+ *
+ * Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 3.1, 3.2
+ */
+async function handleOptOut(from: string): Promise<Response> {
+  // Validate required field
+  if (!from) {
+    console.error("[twilio-webhook] Opt-out received with missing From field");
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  const serviceClient = createSupabaseClient();
+
+  // 1. Compute phone hash
+  let phoneHash: string;
+  try {
+    phoneHash = await hashPhone(from);
+  } catch (err) {
+    console.error(
+      "[twilio-webhook] Failed to hash phone for opt-out:",
+      sanitizeForLogging({ error: (err as Error).message }),
+    );
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  // 2. Look up business via existing review request matching logic
+  const lookup = await lookupBusinessByPhoneHash(serviceClient, phoneHash);
+  if (!lookup) {
+    // No known business for this phone — cannot create opt-out record
+    console.error(
+      "[twilio-webhook] Opt-out from unknown phone, no matching review request found",
+    );
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  const { businessId, customerNameEncrypted } = lookup;
+
+  // 3. Decrypt customer name for display purposes (if available)
+  let customerName: string | undefined;
+  if (customerNameEncrypted) {
+    try {
+      customerName = await decrypt(customerNameEncrypted);
+    } catch {
+      // Fall back to phone display if decryption fails
+      customerName = undefined;
+    }
+  }
+
+  // 4. Create opt-out record (idempotent — ON CONFLICT DO NOTHING)
+  const optOutResult = await createOptOutRecord(serviceClient, {
+    businessId,
+    customerPhoneHash: phoneHash,
+    customerNameEncrypted: customerNameEncrypted,
+  });
+
+  if (!optOutResult.success) {
+    console.error(
+      "[twilio-webhook] Failed to create opt-out record:",
+      sanitizeForLogging({ error: optOutResult.error.message }),
+    );
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  // 5. Create inbox item for business owner
+  const inboxBody = formatOptOutInboxBody(customerName, from);
+  const inboxResult = await createInboxItem(serviceClient, {
+    businessId,
+    type: "opt_out",
+    title: "Customer Opted Out",
+    body: inboxBody,
+  });
+
+  if (!inboxResult.success) {
+    console.error(
+      "[twilio-webhook] Failed to create opt-out inbox item:",
+      sanitizeForLogging({ error: inboxResult.error.message }),
+    );
+    // Non-fatal: opt-out record is the source of truth
+  }
+
+  // 6. Create activity feed entry
+  const activityDescription = formatOptOutActivityDescription(customerName, from);
+  const activityResult = await createActivityFeedEntry(serviceClient, {
+    businessId,
+    type: "sms_opt_out",
+    customerName,
+    customerPhoneFormatted: from,
+    description: activityDescription,
+  });
+
+  if (!activityResult.success) {
+    console.error(
+      "[twilio-webhook] Failed to create opt-out activity entry:",
+      sanitizeForLogging({ error: activityResult.error.message }),
+    );
+    // Non-fatal: opt-out record is the source of truth
+  }
+
+  // 7. Return empty TwiML (Twilio already sends carrier-level STOP confirmation)
+  return twimlResponse(buildEmptyResponse());
+}
+
+/**
+ * Handle an opt-in notification (customer texted START/UNSTOP).
+ * Deactivates the opt-out record and creates an activity feed entry.
+ * If no existing opt-out record found, this is a no-op.
+ *
+ * Requirements: 5.1, 5.3
+ */
+async function handleOptIn(from: string): Promise<Response> {
+  // Validate required field
+  if (!from) {
+    console.error("[twilio-webhook] Opt-in received with missing From field");
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  const serviceClient = createSupabaseClient();
+
+  // 1. Compute phone hash
+  let phoneHash: string;
+  try {
+    phoneHash = await hashPhone(from);
+  } catch (err) {
+    console.error(
+      "[twilio-webhook] Failed to hash phone for opt-in:",
+      sanitizeForLogging({ error: (err as Error).message }),
+    );
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  // 2. Look up business via existing review request matching logic
+  const lookup = await lookupBusinessByPhoneHash(serviceClient, phoneHash);
+  if (!lookup) {
+    // No known business for this phone — no-op
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  const { businessId, customerNameEncrypted } = lookup;
+
+  // 3. Decrypt customer name for display purposes (if available)
+  let customerName: string | undefined;
+  if (customerNameEncrypted) {
+    try {
+      customerName = await decrypt(customerNameEncrypted);
+    } catch {
+      customerName = undefined;
+    }
+  }
+
+  // 4. Deactivate opt-out record (if no active record exists, this is a no-op)
+  const deactivateResult = await deactivateOptOutRecord(serviceClient, {
+    businessId,
+    customerPhoneHash: phoneHash,
+  });
+
+  if (!deactivateResult.success) {
+    console.error(
+      "[twilio-webhook] Failed to deactivate opt-out record:",
+      sanitizeForLogging({ error: deactivateResult.error.message }),
+    );
+    return twimlResponse(buildEmptyResponse());
+  }
+
+  // 5. Create activity feed entry for opt-in
+  const activityDescription = formatOptInActivityDescription(customerName, from);
+  const activityResult = await createActivityFeedEntry(serviceClient, {
+    businessId,
+    type: "sms_opt_in",
+    customerName,
+    customerPhoneFormatted: from,
+    description: activityDescription,
+  });
+
+  if (!activityResult.success) {
+    console.error(
+      "[twilio-webhook] Failed to create opt-in activity entry:",
+      sanitizeForLogging({ error: activityResult.error.message }),
+    );
+    // Non-fatal
+  }
+
+  // 6. Return empty TwiML
+  return twimlResponse(buildEmptyResponse());
 }

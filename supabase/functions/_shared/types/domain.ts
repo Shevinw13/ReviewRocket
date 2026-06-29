@@ -8,9 +8,9 @@ export type SubscriptionTier = "starter" | "growth" | "pro";
 
 /** Monthly SMS quotas per subscription tier. */
 export const TIER_QUOTAS: Record<SubscriptionTier, number> = {
-  starter: 250,
-  growth: 1000,
-  pro: 5000,
+  starter: 50,
+  growth: 200,
+  pro: 1000,
 };
 
 /** Status lifecycle for a review request SMS. */

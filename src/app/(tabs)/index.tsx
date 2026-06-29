@@ -253,19 +253,47 @@ export default function DashboardScreen() {
                           index < activity.length - 1 ? 'border-b border-light-gray' : ''
                         }`}
                       >
-                        {/* Customer Avatar Placeholder */}
-                        <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
-                          <Ionicons name="person" size={18} color="#9CA3AF" />
-                        </View>
-
-                        {/* Customer Info */}
-                        <View className="flex-1">
-                          <Text className="text-body font-medium text-navy" numberOfLines={1}>
-                            {item.customerName || 'Customer'}
-                          </Text>
-                          <View className="flex-row items-center mt-0.5">
-                            {renderStars(item.rating)}
+                        {/* Icon / Avatar based on type */}
+                        {item.type === 'rating' && (
+                          <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
+                            <Ionicons name="person" size={18} color="#9CA3AF" />
                           </View>
+                        )}
+                        {item.type === 'sms_opt_out' && (
+                          <View className="w-9 h-9 rounded-full bg-teal/10 items-center justify-center mr-3">
+                            <Ionicons name="information-circle" size={20} color="#0CBFA6" />
+                          </View>
+                        )}
+                        {item.type === 'sms_opt_in' && (
+                          <View className="w-9 h-9 rounded-full bg-green-50 items-center justify-center mr-3">
+                            <Ionicons name="checkmark-circle-outline" size={20} color="#22C55E" />
+                          </View>
+                        )}
+
+                        {/* Content based on type */}
+                        <View className="flex-1">
+                          {item.type === 'rating' && (
+                            <>
+                              <Text className="text-body font-medium text-navy" numberOfLines={1}>
+                                {item.customerName || 'Customer'}
+                              </Text>
+                              {item.rating != null && (
+                                <View className="flex-row items-center mt-0.5">
+                                  {renderStars(item.rating)}
+                                </View>
+                              )}
+                            </>
+                          )}
+                          {item.type === 'sms_opt_out' && (
+                            <Text className="text-body font-medium text-navy" numberOfLines={2}>
+                              {item.customerName || item.customerPhoneFormatted || 'A customer'} opted out of SMS messaging
+                            </Text>
+                          )}
+                          {item.type === 'sms_opt_in' && (
+                            <Text className="text-body font-medium text-navy" numberOfLines={2}>
+                              {item.customerName || item.customerPhoneFormatted || 'A customer'} opted back in to SMS messaging
+                            </Text>
+                          )}
                         </View>
 
                         {/* Time Ago */}

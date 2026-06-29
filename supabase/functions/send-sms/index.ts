@@ -17,6 +17,7 @@ import {
   incrementSmsUsage,
   writeAuditLog,
   queueSmsForRetry,
+  checkOptOutStatus,
 } from "../_shared/adapters/supabase.adapter.ts";
 import { sendSms } from "../_shared/adapters/twilio.adapter.ts";
 import { encrypt } from "../_shared/utils/encryption.ts";
@@ -129,7 +130,39 @@ serve(async (req: Request): Promise<Response> => {
 
   const profile = profileResult.data;
 
-  // 4. Check SMS quota: if used >= quota, return 403 with QUOTA_EXCEEDED
+  // 4. Compute phone hash early for opt-out check and later lookups
+  const phoneHash = await hashPhone(phoneNumber);
+
+  // 5. Check opt-out status before quota deduction (Requirements 4.1, 4.4, 4.5)
+  try {
+    const optOutResult = await checkOptOutStatus(serviceClient, phoneHash, profile.id);
+    if (optOutResult.success && optOutResult.data === true) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "OPT_OUT",
+            message: "This customer has opted out of receiving SMS messages.",
+          },
+        }),
+        { status: 409, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    if (!optOutResult.success) {
+      // Fail-open: log warning and continue — Twilio enforces STOP at carrier level
+      console.warn(
+        "[send-sms] Opt-out check failed, proceeding with send (fail-open):",
+        sanitizeForLogging({ businessId: profile.id, error: optOutResult.error.message }),
+      );
+    }
+  } catch (err) {
+    // Fail-open: log warning and continue — Twilio enforces STOP at carrier level
+    console.warn(
+      "[send-sms] Opt-out check threw exception, proceeding with send (fail-open):",
+      sanitizeForLogging({ businessId: profile.id, error: (err as Error).message }),
+    );
+  }
+
+  // 6. Check SMS quota: if used >= quota, return 403 with QUOTA_EXCEEDED
   const usageResult = await getSmsUsage(serviceClient, profile.id);
   if (!usageResult.success) {
     console.error(
@@ -156,9 +189,8 @@ serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  // 5. Encrypt the phone number for storage and hash for lookups
+  // 7. Encrypt the phone number for storage
   const encryptedPhone = await encrypt(phoneNumber);
-  const phoneHash = await hashPhone(phoneNumber);
 
   // Check for duplicate within 24 hours
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -192,13 +224,13 @@ serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  // 6. Encrypt customer data for storage
+  // 8. Encrypt customer data for storage
   const encryptedName = customerName ? await encrypt(customerName) : null;
 
-  // 7. Format the SMS message
+  // 9. Format the SMS message
   const smsBody = formatSmsMessage(profile.businessName, customerName);
 
-  // 8. Send via Twilio adapter
+  // 10. Send via Twilio adapter
   const smsPayload: SendSmsPayload = {
     to: phoneNumber,
     body: smsBody,

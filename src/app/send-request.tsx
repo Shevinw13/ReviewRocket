@@ -167,6 +167,15 @@ export default function SendRequestScreen() {
       } else {
         const error = result.error as AppError;
 
+        if (error.code === ErrorCode.OPT_OUT) {
+          Alert.alert(
+            'Unable to Send Request',
+            'This customer has opted out of receiving SMS messages. To respect their communication preferences, Nudgli cannot send additional review requests unless they opt back in.',
+            [{ text: 'OK', style: 'default' }],
+          );
+          return;
+        }
+
         if (error.code === ErrorCode.QUOTA_EXCEEDED) {
           // Navigate to subscription tier selection (Req 8.3)
           router.push({ pathname: '/subscription', params: { quotaExceeded: 'true' } });

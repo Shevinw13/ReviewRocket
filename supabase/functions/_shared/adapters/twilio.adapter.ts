@@ -97,16 +97,17 @@ export async function sendSms(
  */
 export function buildPositiveResponse(googleReviewUrl: string): TwiMLResponse {
   const message =
-    `Thank you so much for your kind words! We'd love it if you could share your experience on Google. It really helps our small business grow: ${googleReviewUrl}`;
+    `Thanks so much — that really means a lot to us! If you have a moment, we'd love for you to share your experience on Google. It makes a huge difference for our small business: ${googleReviewUrl}`;
   return buildTwiMLMessage(message);
 }
 
 /**
- * Build a TwiML response asking for more details after a negative rating.
+ * Build a TwiML response acknowledging a negative rating with empathy.
+ * Does not solicit additional written feedback — a team member will follow up directly.
  */
 export function buildNegativeResponse(): TwiMLResponse {
   const message =
-    "We're sorry to hear that. We'd love to understand what went wrong so we can do better. Would you mind sharing a few more details about your experience?";
+    "Thank you for your honesty \u2014 we're sorry your experience didn't meet expectations. Someone from our team will reach out to you shortly to make things right.";
   return buildTwiMLMessage(message);
 }
 

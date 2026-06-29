@@ -10,19 +10,24 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import type { DashboardMetrics as DashboardMetricsData } from '@/types';
 
-export type ComparisonPeriod = 'week' | 'month';
+export type ComparisonPeriod = 'day' | 'week' | 'month';
 
 export interface DashboardMetricsProps {
   metrics: DashboardMetricsData;
   /** Week-over-week data (optional — if not provided, WoW toggle won't show change) */
   weekOverWeekChange?: number | null;
   weekCount?: number;
+  /** Day-level data (optional) */
+  dayOverDayChange?: number | null;
+  dayCount?: number;
 }
 
 export function DashboardMetrics({
   metrics,
   weekOverWeekChange = null,
   weekCount,
+  dayOverDayChange = null,
+  dayCount,
 }: DashboardMetricsProps) {
   const [period, setPeriod] = useState<ComparisonPeriod>('month');
 
@@ -35,10 +40,22 @@ export function DashboardMetrics({
   } = metrics;
 
   // Determine which values to show based on selected period
-  const currentCount = period === 'month' ? reviewOpportunities : (weekCount ?? reviewOpportunities);
-  const changeValue = period === 'month' ? monthOverMonthChange : weekOverWeekChange;
-  const periodLabel = period === 'month' ? 'this month' : 'this week';
-  const comparisonLabel = period === 'month' ? 'vs last month' : 'vs last week';
+  const currentCount =
+    period === 'month' ? reviewOpportunities
+    : period === 'week' ? (weekCount ?? reviewOpportunities)
+    : (dayCount ?? reviewOpportunities);
+  const changeValue =
+    period === 'month' ? monthOverMonthChange
+    : period === 'week' ? weekOverWeekChange
+    : dayOverDayChange;
+  const periodLabel =
+    period === 'month' ? 'this month'
+    : period === 'week' ? 'this week'
+    : 'today';
+  const comparisonLabel =
+    period === 'month' ? 'vs last month'
+    : period === 'week' ? 'vs last week'
+    : 'vs yesterday';
 
   // Format comparison display
   const changeDisplay =
@@ -53,15 +70,56 @@ export function DashboardMetrics({
         ? 'text-success-green'
         : 'text-red-500';
 
-  // Toggle between periods
-  const togglePeriod = () => {
-    setPeriod((prev) => (prev === 'month' ? 'week' : 'month'));
-  };
-
   return (
     <View>
       {/* Primary Card — Review Opportunities Created */}
       <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm shadow-black/5 border border-light-gray">
+        {/* Period Toggle - visible segmented control */}
+        <View className="flex-row items-center mb-3">
+          <Pressable
+            onPress={() => setPeriod('day')}
+            className={`px-3 py-1.5 rounded-lg mr-2 ${
+              period === 'day' ? 'bg-navy' : 'bg-card-bg'
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel="View daily data"
+          >
+            <Text className={`text-caption font-semibold ${
+              period === 'day' ? 'text-white' : 'text-navy/60'
+            }`}>
+              Day
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setPeriod('week')}
+            className={`px-3 py-1.5 rounded-lg mr-2 ${
+              period === 'week' ? 'bg-navy' : 'bg-card-bg'
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel="View weekly data"
+          >
+            <Text className={`text-caption font-semibold ${
+              period === 'week' ? 'text-white' : 'text-navy/60'
+            }`}>
+              Week
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setPeriod('month')}
+            className={`px-3 py-1.5 rounded-lg ${
+              period === 'month' ? 'bg-navy' : 'bg-card-bg'
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel="View monthly data"
+          >
+            <Text className={`text-caption font-semibold ${
+              period === 'month' ? 'text-white' : 'text-navy/60'
+            }`}>
+              Month
+            </Text>
+          </Pressable>
+        </View>
+
         <Text className="text-caption font-medium text-navy/60 uppercase tracking-wide mb-2">
           Review Opportunities Created
         </Text>
@@ -74,12 +132,7 @@ export function DashboardMetrics({
               {currentCount === 1 ? `1 ${periodLabel}` : `${currentCount} ${periodLabel}`}
             </Text>
           </View>
-          <Pressable
-            onPress={togglePeriod}
-            className="flex-row items-center bg-card-bg rounded-xl px-3 py-1.5 active:opacity-70"
-            accessibilityRole="button"
-            accessibilityLabel={`Switch to ${period === 'month' ? 'week over week' : 'month over month'} comparison`}
-          >
+          <View className="flex-row items-center bg-card-bg rounded-xl px-3 py-1.5">
             {changeValue !== null && changeValue !== undefined && (
               <Ionicons
                 name={changeValue >= 0 ? 'trending-up' : 'trending-down'}
@@ -91,7 +144,7 @@ export function DashboardMetrics({
             <Text className={`text-caption font-semibold ${changeColor}`}>
               {changeDisplay} {comparisonLabel}
             </Text>
-          </Pressable>
+          </View>
         </View>
       </View>
 
@@ -100,7 +153,7 @@ export function DashboardMetrics({
         {/* Positive Responses */}
         <View className="flex-1 bg-white rounded-2xl p-4 border border-light-gray">
           <View className="w-8 h-8 rounded-full bg-success-green/10 items-center justify-center mb-2">
-            <Ionicons name="thumbs-up" size={16} color="#22C55E" />
+            <Ionicons name="checkmark-outline" size={16} color="#22C55E" />
           </View>
           <Text className="text-[22px] font-bold text-navy">
             {positiveResponses}
@@ -110,23 +163,23 @@ export function DashboardMetrics({
           </Text>
         </View>
 
-        {/* Needs Attention */}
+        {/* Needs Follow-up */}
         <View className="flex-1 bg-white rounded-2xl p-4 border border-light-gray">
-          <View className="w-8 h-8 rounded-full bg-orange-100 items-center justify-center mb-2">
-            <Ionicons name="alert-circle" size={16} color="#F97316" />
+          <View className="w-8 h-8 rounded-full bg-amber-100 items-center justify-center mb-2">
+            <Ionicons name="alert-circle-outline" size={16} color="#F97316" />
           </View>
           <Text className="text-[22px] font-bold text-navy">
             {needsAttention}
           </Text>
           <Text className="text-caption text-navy/50 mt-0.5">
-            Needs{'\n'}Attention
+            Needs{'\n'}Follow-up
           </Text>
         </View>
 
         {/* Response Rate */}
         <View className="flex-1 bg-white rounded-2xl p-4 border border-light-gray">
           <View className="w-8 h-8 rounded-full bg-blue-100 items-center justify-center mb-2">
-            <Ionicons name="pulse" size={16} color="#3B82F6" />
+            <Ionicons name="trending-up-outline" size={16} color="#3B82F6" />
           </View>
           <Text className="text-[22px] font-bold text-navy">
             {responseRate === null ? '\u2014' : `${responseRate}%`}

@@ -473,6 +473,232 @@ export async function getPendingSmsQueueItems(
   };
 }
 
+// ─── Opt-Out / Inbox / Activity Feed ────────────────────────────────────────
+
+/**
+ * Create an opt-out record for a customer phone + business combination.
+ * Uses ON CONFLICT DO NOTHING for idempotency.
+ * Returns the record id and whether a new record was actually created.
+ */
+export async function createOptOutRecord(
+  client: SupabaseClient,
+  params: {
+    businessId: string;
+    customerPhoneHash: string;
+    customerNameEncrypted?: string;
+  },
+): Promise<Result<{ id: string; created: boolean }>> {
+  try {
+    // Attempt insert; ON CONFLICT DO NOTHING is handled via upsert with ignoreDuplicates
+    const { data, error } = await client
+      .from("sms_opt_outs")
+      .upsert(
+        {
+          business_id: params.businessId,
+          customer_phone_hash: params.customerPhoneHash,
+          customer_name_encrypted: params.customerNameEncrypted || null,
+          is_active: true,
+          opted_out_at: new Date().toISOString(),
+        },
+        { onConflict: "business_id,customer_phone_hash", ignoreDuplicates: true },
+      )
+      .select("id")
+      .single();
+
+    if (error) {
+      // If ignoreDuplicates causes no row to be returned, look up the existing record
+      if (error.code === "PGRST116") {
+        const { data: existing, error: lookupError } = await client
+          .from("sms_opt_outs")
+          .select("id")
+          .eq("business_id", params.businessId)
+          .eq("customer_phone_hash", params.customerPhoneHash)
+          .single();
+
+        if (lookupError) {
+          return {
+            success: false,
+            error: { code: ErrorCode.SERVER_ERROR, message: lookupError.message, details: lookupError },
+          };
+        }
+
+        return { success: true, data: { id: existing.id, created: false } };
+      }
+
+      return {
+        success: false,
+        error: { code: ErrorCode.SERVER_ERROR, message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: { id: data.id, created: true } };
+  } catch (err) {
+    return {
+      success: false,
+      error: { code: ErrorCode.SERVER_ERROR, message: (err as Error).message },
+    };
+  }
+}
+
+/**
+ * Deactivate an opt-out record (customer opted back in).
+ * Sets is_active = false and records the opted_in_at timestamp.
+ */
+export async function deactivateOptOutRecord(
+  client: SupabaseClient,
+  params: {
+    businessId: string;
+    customerPhoneHash: string;
+  },
+): Promise<Result<void>> {
+  try {
+    const { error } = await client
+      .from("sms_opt_outs")
+      .update({
+        is_active: false,
+        opted_in_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("business_id", params.businessId)
+      .eq("customer_phone_hash", params.customerPhoneHash)
+      .eq("is_active", true);
+
+    if (error) {
+      return {
+        success: false,
+        error: { code: ErrorCode.SERVER_ERROR, message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: undefined };
+  } catch (err) {
+    return {
+      success: false,
+      error: { code: ErrorCode.SERVER_ERROR, message: (err as Error).message },
+    };
+  }
+}
+
+/**
+ * Check whether a customer phone is opted out for a given business.
+ * Returns true if an active opt-out record exists, false otherwise.
+ */
+export async function checkOptOutStatus(
+  client: SupabaseClient,
+  phoneHash: string,
+  businessId: string,
+): Promise<Result<boolean>> {
+  try {
+    const { data, error } = await client
+      .from("sms_opt_outs")
+      .select("id")
+      .eq("customer_phone_hash", phoneHash)
+      .eq("business_id", businessId)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (error) {
+      return {
+        success: false,
+        error: { code: ErrorCode.SERVER_ERROR, message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: data !== null };
+  } catch (err) {
+    return {
+      success: false,
+      error: { code: ErrorCode.SERVER_ERROR, message: (err as Error).message },
+    };
+  }
+}
+
+/**
+ * Create an inbox item (e.g., opt-out notification for the business owner).
+ */
+export async function createInboxItem(
+  client: SupabaseClient,
+  params: {
+    businessId: string;
+    type: "opt_out" | "system";
+    title: string;
+    body: string;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<Result<{ id: string }>> {
+  try {
+    const { data, error } = await client
+      .from("inbox_items")
+      .insert({
+        business_id: params.businessId,
+        type: params.type,
+        title: params.title,
+        body: params.body,
+        metadata: params.metadata || null,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      return {
+        success: false,
+        error: { code: ErrorCode.SERVER_ERROR, message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: { id: data.id } };
+  } catch (err) {
+    return {
+      success: false,
+      error: { code: ErrorCode.SERVER_ERROR, message: (err as Error).message },
+    };
+  }
+}
+
+/**
+ * Create an activity feed entry (opt-out, opt-in, or rating event).
+ */
+export async function createActivityFeedEntry(
+  client: SupabaseClient,
+  params: {
+    businessId: string;
+    type: "rating" | "sms_opt_out" | "sms_opt_in";
+    customerName?: string;
+    customerPhoneFormatted?: string;
+    description: string;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<Result<{ id: string }>> {
+  try {
+    const { data, error } = await client
+      .from("activity_feed")
+      .insert({
+        business_id: params.businessId,
+        type: params.type,
+        customer_name: params.customerName || null,
+        customer_phone_formatted: params.customerPhoneFormatted || null,
+        description: params.description,
+        metadata: params.metadata || null,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      return {
+        success: false,
+        error: { code: ErrorCode.SERVER_ERROR, message: error.message, details: error },
+      };
+    }
+
+    return { success: true, data: { id: data.id } };
+  } catch (err) {
+    return {
+      success: false,
+      error: { code: ErrorCode.SERVER_ERROR, message: (err as Error).message },
+    };
+  }
+}
+
 // ─── Mappers ────────────────────────────────────────────────────────────────
 
 function mapBusinessProfile(row: Record<string, unknown>): BusinessProfile {

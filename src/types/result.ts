@@ -27,5 +27,6 @@ export enum ErrorCode {
   NOT_FOUND = 'NOT_FOUND',
   CONFLICT = 'CONFLICT',
   SERVER_ERROR = 'SERVER_ERROR',
+  OPT_OUT = 'OPT_OUT',
   UNKNOWN = 'UNKNOWN',
 }

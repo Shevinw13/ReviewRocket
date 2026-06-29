@@ -23,10 +23,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useService } from '@/services';
 import { useUnresolvedCount } from '@/features/inbox/hooks/useUnresolvedCount';
 import { FeedbackCard } from '@/features/inbox/components/FeedbackCard';
+import { OptOutCard } from '@/features/inbox/components/OptOutCard';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { Badge } from '@/components/ui/Badge';
 import { useUnresolvedFeedback, type EnrichedFeedback } from '@/features/inbox/hooks/useUnresolvedFeedback';
 import { useAllFeedback } from '@/features/inbox/hooks/useAllFeedback';
+import { useInboxItems } from '@/features/inbox/hooks/useInboxItems';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -55,6 +57,12 @@ export default function InboxScreen() {
     isLoading: allLoading,
   } = useAllFeedback();
 
+  const {
+    data: inboxItems,
+    dismiss,
+    isDismissing,
+  } = useInboxItems();
+
   // ─── Determine active data ────────────────────────────────────────────
 
   const feedbackList =
@@ -74,6 +82,7 @@ export default function InboxScreen() {
         queryClient.invalidateQueries({ queryKey: ['unresolved-feedback'] }),
         queryClient.invalidateQueries({ queryKey: ['all-feedback'] }),
         queryClient.invalidateQueries({ queryKey: ['unresolved-count'] }),
+        queryClient.invalidateQueries({ queryKey: ['inbox-items'] }),
       ]);
     } finally {
       setRefreshing(false);
@@ -208,7 +217,7 @@ export default function InboxScreen() {
             />
           }
         >
-          {feedbackList.length === 0 ? (
+          {feedbackList.length === 0 && (activeTab === 'all' || inboxItems.length === 0) ? (
             /* Empty State */
             <View className="items-center justify-center py-16">
               <View className="w-16 h-16 rounded-full bg-success-green/10 items-center justify-center mb-4">
@@ -230,20 +239,34 @@ export default function InboxScreen() {
               </Text>
             </View>
           ) : (
-            /* Feedback Cards */
-            feedbackList.map((item: EnrichedFeedback) => (
-              <FeedbackCard
-                key={item.id}
-                customerName={item.customerName}
-                rating={item.rating}
-                feedbackText={item.feedbackText}
-                createdAt={new Date(item.createdAt)}
-                isResolved={item.isResolved}
-                onCall={() => handleCall(item.customerPhone, item.customerName)}
-                onResolve={() => handleResolve(item.id)}
-                isResolving={resolvingIds.has(item.id)}
-              />
-            ))
+            <>
+              {/* Opt-Out Inbox Cards (only in Needs Attention tab) */}
+              {activeTab === 'needs-attention' &&
+                inboxItems.map((item) => (
+                  <OptOutCard
+                    key={item.id}
+                    title={item.title}
+                    body={item.body}
+                    onDismiss={() => dismiss(item.id)}
+                    isDismissing={isDismissing}
+                  />
+                ))}
+
+              {/* Feedback Cards */}
+              {feedbackList.map((item: EnrichedFeedback) => (
+                <FeedbackCard
+                  key={item.id}
+                  customerName={item.customerName}
+                  rating={item.rating}
+                  feedbackText={item.feedbackText}
+                  createdAt={new Date(item.createdAt)}
+                  isResolved={item.isResolved}
+                  onCall={() => handleCall(item.customerPhone, item.customerName)}
+                  onResolve={() => handleResolve(item.id)}
+                  isResolving={resolvingIds.has(item.id)}
+                />
+              ))}
+            </>
           )}
         </ScrollView>
       )}
