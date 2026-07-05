@@ -27,6 +27,7 @@ import { DashboardMetrics } from '@/features/dashboard/components/DashboardMetri
 import type { ComparisonPeriod } from '@/features/dashboard/components/DashboardMetrics';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
+import { useTheme } from '@/theme/ThemeContext';
 import type { DashboardMetrics as DashboardMetricsType, ActivityItem } from '@/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ export default function DashboardScreen() {
   const { data: profile, isLoading: profileLoading } = useBusinessProfile();
   const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
   const { data: recentActivity, isLoading: activityLoading } = useRecentActivity();
+  const { colors: t, isDark } = useTheme();
 
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<ComparisonPeriod>('month');
@@ -150,7 +152,7 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
-        <ScrollView className="flex-1 bg-card-bg" contentContainerClassName="pb-12">
+        <ScrollView className="flex-1" style={{ backgroundColor: t.bg }} contentContainerClassName="pb-12">
           <DashboardSkeleton />
         </ScrollView>
       </SafeAreaView>
@@ -160,7 +162,7 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
       <ScrollView
-        className="flex-1 bg-card-bg"
+        className="flex-1" style={{ backgroundColor: t.bg }}
         contentContainerClassName="pb-12"
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -201,14 +203,14 @@ export default function DashboardScreen() {
         <View className="px-5 -mt-4">
           {!hasData ? (
             /* Empty State — Welcome Card */
-            <View className="bg-white rounded-2xl p-6 border border-light-gray items-center shadow-sm shadow-black/5">
+            <View className="rounded-2xl p-6 items-center shadow-sm shadow-black/5" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
               <View className="w-16 h-16 rounded-full bg-teal/10 items-center justify-center mb-4">
                 <Ionicons name="rocket-outline" size={32} color="#0CBFA6" />
               </View>
-              <Text className="text-body font-bold text-navy text-center mb-2">
+              <Text className="text-body font-bold text-center mb-2" style={{ color: t.text }}>
                 Ready to get your first review?
               </Text>
-              <Text className="text-caption text-navy/60 text-center mb-6 px-4">
+              <Text className="text-caption text-center mb-6 px-4" style={{ color: t.textMuted }}>
                 Send a text to your last customer and watch the feedback roll in.
               </Text>
               <Pressable
@@ -237,10 +239,10 @@ export default function DashboardScreen() {
                     <Ionicons name="link-outline" size={18} color="#F59E0B" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-body font-medium text-navy">
+                    <Text className="text-body font-medium" style={{ color: t.text }}>
                       Add your Google Review link
                     </Text>
-                    <Text className="text-caption text-navy/60 mt-0.5">
+                    <Text className="text-caption mt-0.5" style={{ color: t.textMuted }}>
                       Happy customers will be directed to leave a public review
                     </Text>
                   </View>
@@ -273,7 +275,7 @@ export default function DashboardScreen() {
               {/* Recent Activity Section */}
               <View className="mt-8">
                 <View className="flex-row items-center justify-between mb-4">
-                  <Text className="text-body font-bold text-navy">
+                  <Text className="text-body font-bold" style={{ color: t.text }}>
                     Recent Activity
                   </Text>
                   {activity.length > 0 && (
@@ -291,16 +293,16 @@ export default function DashboardScreen() {
 
                 {filteredActivity.length === 0 ? (
                   /* Empty State */
-                  <View className="bg-white rounded-2xl p-6 border border-light-gray items-center">
+                  <View className="rounded-2xl p-6 items-center" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
                     <Ionicons name="chatbubbles-outline" size={32} color="#E5E7EB" />
-                    <Text className="text-body text-navy/40 mt-3 text-center">
+                    <Text className="text-body mt-3 text-center" style={{ color: t.textMuted }}>
                       {selectedPeriod === 'day'
                         ? 'No activity today'
                         : selectedPeriod === 'week'
                           ? 'No activity this week'
                           : 'No activity yet'}
                     </Text>
-                    <Text className="text-caption text-navy/30 mt-1 text-center">
+                    <Text className="text-caption mt-1 text-center" style={{ color: t.textMuted }}>
                       {selectedPeriod === 'month'
                         ? 'Send your first review request to see feedback here'
                         : 'Activity from this period will show up here'}
@@ -308,7 +310,7 @@ export default function DashboardScreen() {
                   </View>
                 ) : (
                   /* Activity Items */
-                  <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
+                  <View className="rounded-2xl border overflow-hidden" style={{ backgroundColor: t.cardBg, borderColor: t.border }}>
                     {filteredActivity.map((item: ActivityItem, index: number) => (
                       <View
                         key={item.id}
@@ -342,7 +344,7 @@ export default function DashboardScreen() {
                         <View className="flex-1">
                           {item.type === 'rating' && (
                             <>
-                              <Text className="text-body font-medium text-navy" numberOfLines={1}>
+                              <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={1}>
                                 {item.customerName || 'Customer'}
                               </Text>
                               {item.rating != null && (
@@ -353,19 +355,19 @@ export default function DashboardScreen() {
                             </>
                           )}
                           {item.type === 'sms_opt_out' && (
-                            <Text className="text-body font-medium text-navy" numberOfLines={2}>
+                            <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={2}>
                               {item.customerName || item.customerPhoneFormatted || 'A customer'} opted out of SMS messaging
                             </Text>
                           )}
                           {item.type === 'sms_opt_in' && (
-                            <Text className="text-body font-medium text-navy" numberOfLines={2}>
+                            <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={2}>
                               {item.customerName || item.customerPhoneFormatted || 'A customer'} opted back in to SMS messaging
                             </Text>
                           )}
                         </View>
 
                         {/* Time Ago */}
-                        <Text className="text-caption text-navy/40">
+                        <Text className="text-caption" style={{ color: t.textMuted }}>
                           {getTimeAgo(new Date(item.createdAt))}
                         </Text>
                       </View>

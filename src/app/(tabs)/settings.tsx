@@ -16,6 +16,7 @@ import * as Notifications from 'expo-notifications';
 
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useAuthContext } from '@/features/auth/context/AuthContext';
+import { useTheme, type ThemePreference } from '@/theme/ThemeContext';
 import { TIER_QUOTAS, type SubscriptionTier } from '@/types';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
@@ -37,6 +38,7 @@ function getUsagePercentage(used: number, quota: number): number {
 export default function SettingsScreen() {
   const { signOut } = useAuthContext();
   const { data: profile, isLoading, refetch } = useBusinessProfile();
+  const { preference: themePreference, setPreference: setThemePreference, colors: t } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   // Check current notification permission status on mount and focus
@@ -155,7 +157,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
       <ScrollView
-        className="flex-1 bg-card-bg"
+        className="flex-1" style={{ backgroundColor: t.bg }}
         contentContainerClassName="pb-12"
         showsVerticalScrollIndicator={false}
       >
@@ -169,10 +171,10 @@ export default function SettingsScreen() {
 
         {/* Account Section */}
         <View className="mb-6">
-          <Text className="text-caption font-semibold text-navy/50 uppercase tracking-wide mb-3">
+          <Text className="text-caption font-semibold uppercase tracking-wide mb-3" style={{ color: t.textMuted }}>
             Account
           </Text>
-          <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
+          <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
             <Pressable
               className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
               accessibilityRole="button"
@@ -183,11 +185,11 @@ export default function SettingsScreen() {
                 <Ionicons name="business-outline" size={20} color="#0CBFA6" />
               </View>
               <View className="flex-1">
-                <Text className="text-body font-semibold text-navy">
+                <Text className="text-body font-semibold" style={{ color: t.text }}>
                   {profile?.businessName ?? '—'}
                 </Text>
                 {profile?.googleReviewUrl ? (
-                  <Text className="text-caption text-navy/50" numberOfLines={1}>
+                  <Text className="text-caption" style={{ color: t.textMuted }} numberOfLines={1}>
                     {profile.googleReviewUrl.replace(/^https?:\/\//, '').slice(0, 40)}...
                   </Text>
                 ) : (
@@ -208,10 +210,10 @@ export default function SettingsScreen() {
                 <Ionicons name="person-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
-                <Text className="text-body font-medium text-navy">
+                <Text className="text-body font-medium" style={{ color: t.text }}>
                   {profile ? `${profile.firstName} ${profile.lastName}` : '—'}
                 </Text>
-                <Text className="text-caption text-navy/50">User Profile</Text>
+                <Text className="text-caption" style={{ color: t.textMuted }}>User Profile</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
             </Pressable>
@@ -225,10 +227,10 @@ export default function SettingsScreen() {
                 <Ionicons name="card-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
-                <Text className="text-body font-medium text-navy">
+                <Text className="text-body font-medium" style={{ color: t.text }}>
                   Subscription
                 </Text>
-                <Text className="text-caption text-navy/50">Manage your plan</Text>
+                <Text className="text-caption" style={{ color: t.textMuted }}>Manage your plan</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
             </Pressable>
@@ -237,10 +239,10 @@ export default function SettingsScreen() {
 
         {/* Subscription & Usage Section */}
         <View className="mb-6">
-          <Text className="text-caption font-semibold text-navy/50 uppercase tracking-wide mb-3">
+          <Text className="text-caption font-semibold uppercase tracking-wide mb-3" style={{ color: t.textMuted }}>
             Subscription
           </Text>
-          <View className="bg-white rounded-2xl border border-light-gray p-4">
+          <View className="rounded-2xl p-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
             {/* Tier Badge */}
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-row items-center">
@@ -265,10 +267,10 @@ export default function SettingsScreen() {
             {/* Usage Bar */}
             <View className="mb-2">
               <View className="flex-row justify-between mb-1">
-                <Text className="text-caption text-navy/70">
+                <Text className="text-caption" style={{ color: t.textSecondary }}>
                   SMS Usage
                 </Text>
-                <Text className="text-caption font-medium text-navy">
+                <Text className="text-caption font-medium" style={{ color: t.text }}>
                   {used} / {quota}
                 </Text>
               </View>
@@ -287,7 +289,7 @@ export default function SettingsScreen() {
             </View>
 
             {/* Remaining Count */}
-            <Text className="text-caption text-navy/50">
+            <Text className="text-caption" style={{ color: t.textMuted }}>
               {remaining} messages remaining this period
             </Text>
           </View>
@@ -295,20 +297,20 @@ export default function SettingsScreen() {
 
         {/* Notifications Section (Req 12.1, 12.2, 12.3) */}
         <View className="mb-6">
-          <Text className="text-caption font-semibold text-navy/50 uppercase tracking-wide mb-3">
+          <Text className="text-caption font-semibold uppercase tracking-wide mb-3" style={{ color: t.textMuted }}>
             Notifications
           </Text>
-          <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
+          <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
             <View className="px-4 py-3 flex-row items-center justify-between">
               <View className="flex-row items-center flex-1">
                 <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
                   <Ionicons name="notifications-outline" size={20} color="#0B1D3A" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-body font-medium text-navy">
+                  <Text className="text-body font-medium" style={{ color: t.text }}>
                     Push Notifications
                   </Text>
-                  <Text className="text-caption text-navy/50">
+                  <Text className="text-caption" style={{ color: t.textMuted }}>
                     Get notified about new feedback
                   </Text>
                 </View>
@@ -325,12 +327,62 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Appearance Section */}
+        <View className="mb-6">
+          <Text className="text-caption font-semibold uppercase tracking-wide mb-3" style={{ color: t.textMuted }}>
+            Appearance
+          </Text>
+          <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
+            <View className="px-4 py-3 flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 rounded-full bg-card-bg dark:bg-dark-bg items-center justify-center mr-3">
+                  <Ionicons name="moon-outline" size={20} color={themePreference === 'dark' ? '#0CBFA6' : '#0B1D3A'} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-body font-medium" style={{ color: t.text }}>
+                    Theme
+                  </Text>
+                  <Text className="text-caption" style={{ color: t.textMuted }}>
+                    {themePreference === 'system' ? 'System default' : themePreference === 'dark' ? 'Dark' : 'Light'}
+                  </Text>
+                </View>
+              </View>
+              <View className="flex-row items-center gap-1">
+                <Pressable
+                  onPress={() => setThemePreference('light')}
+                  className={`px-3 py-1.5 rounded-lg ${themePreference === 'light' ? 'bg-navy dark:bg-teal' : 'bg-card-bg dark:bg-dark-bg'}`}
+                  accessibilityRole="button"
+                  accessibilityLabel="Light theme"
+                >
+                  <Ionicons name="sunny-outline" size={16} color={themePreference === 'light' ? '#FFFFFF' : '#9CA3AF'} />
+                </Pressable>
+                <Pressable
+                  onPress={() => setThemePreference('system')}
+                  className={`px-3 py-1.5 rounded-lg ${themePreference === 'system' ? 'bg-navy dark:bg-teal' : 'bg-card-bg dark:bg-dark-bg'}`}
+                  accessibilityRole="button"
+                  accessibilityLabel="System theme"
+                >
+                  <Ionicons name="phone-portrait-outline" size={16} color={themePreference === 'system' ? '#FFFFFF' : '#9CA3AF'} />
+                </Pressable>
+                <Pressable
+                  onPress={() => setThemePreference('dark')}
+                  className={`px-3 py-1.5 rounded-lg ${themePreference === 'dark' ? 'bg-navy dark:bg-teal' : 'bg-card-bg dark:bg-dark-bg'}`}
+                  accessibilityRole="button"
+                  accessibilityLabel="Dark theme"
+                >
+                  <Ionicons name="moon-outline" size={16} color={themePreference === 'dark' ? '#FFFFFF' : '#9CA3AF'} />
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Support & About Section (Req 14.1, 14.2, 15.1, 15.2, 13.1) */}
         <View className="mb-8">
-          <Text className="text-caption font-semibold text-navy/50 uppercase tracking-wide mb-3">
+          <Text className="text-caption font-semibold uppercase tracking-wide mb-3" style={{ color: t.textMuted }}>
             About
           </Text>
-          <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
+          <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
             {/* Support Row */}
             <Pressable
               className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
@@ -342,10 +394,10 @@ export default function SettingsScreen() {
                 <Ionicons name="mail-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
-                <Text className="text-body font-medium text-navy">
+                <Text className="text-body font-medium" style={{ color: t.text }}>
                   Support
                 </Text>
-                <Text className="text-caption text-navy/50">
+                <Text className="text-caption" style={{ color: t.textMuted }}>
                   support@nudgli.app
                 </Text>
               </View>
@@ -362,10 +414,10 @@ export default function SettingsScreen() {
                 <Ionicons name="globe-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
-                <Text className="text-body font-medium text-navy">
+                <Text className="text-body font-medium" style={{ color: t.text }}>
                   Website
                 </Text>
-                <Text className="text-caption text-navy/50">
+                <Text className="text-caption" style={{ color: t.textMuted }}>
                   nudgli.app
                 </Text>
               </View>
@@ -377,11 +429,11 @@ export default function SettingsScreen() {
                 <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
                   <Ionicons name="information-circle-outline" size={20} color="#0B1D3A" />
                 </View>
-                <Text className="text-body font-medium text-navy">
+                <Text className="text-body font-medium" style={{ color: t.text }}>
                   App Version
                 </Text>
               </View>
-              <Text className="text-caption text-navy/50">
+              <Text className="text-caption" style={{ color: t.textMuted }}>
                 v{appVersion}
               </Text>
             </View>

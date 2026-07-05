@@ -6,6 +6,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 
 import { ServiceProvider, useService } from "@/services";
 import type { ServiceRegistry } from "@/services";
+import { ThemeProvider } from "@/theme/ThemeContext";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { useProtectedRoute } from "@/features/auth/hooks/useProtectedRoute";
@@ -206,13 +207,15 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ServiceProvider services={services}>
-        <MonitoringErrorBridge />
-        <AuthProvider value={authState}>
-          {!IS_MOCK_MODE && <SentryUserSyncBridge />}
-          <RootNavigator />
-        </AuthProvider>
-      </ServiceProvider>
+      <ThemeProvider>
+        <ServiceProvider services={services}>
+          <MonitoringErrorBridge />
+          <AuthProvider value={authState}>
+            {!IS_MOCK_MODE && <SentryUserSyncBridge />}
+            <RootNavigator />
+          </AuthProvider>
+        </ServiceProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

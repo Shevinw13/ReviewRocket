@@ -2,6 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 
 import { colors } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { useUnresolvedCount } from "@/features/inbox/hooks/useUnresolvedCount";
 
 /**
@@ -21,16 +22,17 @@ import { useUnresolvedCount } from "@/features/inbox/hooks/useUnresolvedCount";
  */
 export default function TabLayout() {
   const { data: unresolvedCount } = useUnresolvedCount();
+  const { colors: themeColors } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.teal,
-        tabBarInactiveTintColor: colors.lightGray,
+        tabBarInactiveTintColor: themeColors.tabBarInactive,
         tabBarShowLabel: true,
         tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.lightGray,
+          backgroundColor: themeColors.tabBarBg,
+          borderTopColor: themeColors.tabBarBorder,
         },
         headerShown: false,
       }}

@@ -13,6 +13,7 @@
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
+  darkMode: "media",
   theme: {
     extend: {
       colors: {
@@ -22,6 +23,9 @@ module.exports = {
         "success-green": "#22C55E",
         "card-bg": "#F2F4F7",
         "light-gray": "#E5E7EB",
+        "dark-bg": "#0F1419",
+        "dark-card": "#1A2332",
+        "dark-border": "#2A3A4E",
       },
       spacing: {
         "0": "0px",

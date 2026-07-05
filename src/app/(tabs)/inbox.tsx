@@ -28,6 +28,7 @@ import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { InboxSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
 import { hapticSuccess } from '@/utils/haptics';
+import { useTheme } from '@/theme/ThemeContext';
 import { useUnresolvedFeedback, type EnrichedFeedback } from '@/features/inbox/hooks/useUnresolvedFeedback';
 import { useAllFeedback } from '@/features/inbox/hooks/useAllFeedback';
 
@@ -43,6 +44,7 @@ export default function InboxScreen() {
   const queryClient = useQueryClient();
   const feedbackRepo = useService('feedback');
   const { data: unresolvedCount = 0 } = useUnresolvedCount();
+  const { colors: t } = useTheme();
 
   const [activeTab, setActiveTab] = useState<TabFilter>('needs-attention');
   const [refreshing, setRefreshing] = useState(false);
@@ -169,25 +171,25 @@ export default function InboxScreen() {
         </Text>
       </View>
 
-      <View className="flex-1 bg-card-bg rounded-t-3xl -mt-2 pt-4">
+      <View className="flex-1 rounded-t-3xl -mt-2 pt-4" style={{ backgroundColor: t.bg }}>
         {/* Tab Filters */}
         <View className="flex-row px-5 mb-4 gap-2">
         {/* Needs Attention Tab */}
         <Pressable
           onPress={() => setActiveTab('needs-attention')}
-          className={`flex-row items-center px-4 py-2.5 rounded-xl ${
-            activeTab === 'needs-attention'
-              ? 'bg-navy'
-              : 'bg-white border border-light-gray'
-          }`}
+          className="flex-row items-center px-4 py-2.5 rounded-xl"
+          style={{
+            backgroundColor: activeTab === 'needs-attention' ? '#0B1D3A' : t.cardBg,
+            borderWidth: activeTab === 'needs-attention' ? 0 : 1,
+            borderColor: t.border,
+          }}
           accessibilityRole="tab"
           accessibilityState={{ selected: activeTab === 'needs-attention' }}
           accessibilityLabel={`Needs Attention tab, ${unresolvedCount} items`}
         >
           <Text
-            className={`text-caption font-medium ${
-              activeTab === 'needs-attention' ? 'text-white' : 'text-navy'
-            }`}
+            className="text-caption font-medium"
+            style={{ color: activeTab === 'needs-attention' ? '#FFFFFF' : t.text }}
           >
             Needs Attention
           </Text>
@@ -201,19 +203,19 @@ export default function InboxScreen() {
         {/* All Feedback Tab */}
         <Pressable
           onPress={() => setActiveTab('all')}
-          className={`flex-row items-center px-4 py-2.5 rounded-xl ${
-            activeTab === 'all'
-              ? 'bg-navy'
-              : 'bg-white border border-light-gray'
-          }`}
+          className="flex-row items-center px-4 py-2.5 rounded-xl"
+          style={{
+            backgroundColor: activeTab === 'all' ? '#0B1D3A' : t.cardBg,
+            borderWidth: activeTab === 'all' ? 0 : 1,
+            borderColor: t.border,
+          }}
           accessibilityRole="tab"
           accessibilityState={{ selected: activeTab === 'all' }}
           accessibilityLabel="All Feedback tab"
         >
           <Text
-            className={`text-caption font-medium ${
-              activeTab === 'all' ? 'text-white' : 'text-navy'
-            }`}
+            className="text-caption font-medium"
+            style={{ color: activeTab === 'all' ? '#FFFFFF' : t.text }}
           >
             All Feedback
           </Text>
@@ -247,12 +249,12 @@ export default function InboxScreen() {
                   color="#22C55E"
                 />
               </View>
-              <Text className="text-body font-bold text-navy text-center">
+              <Text className="text-body font-bold text-center" style={{ color: t.text }}>
                 {activeTab === 'needs-attention'
                   ? 'All caught up!'
                   : 'No feedback yet'}
               </Text>
-              <Text className="text-caption text-navy/50 text-center mt-2 px-8">
+              <Text className="text-caption text-center mt-2 px-8" style={{ color: t.textMuted }}>
                 {activeTab === 'needs-attention'
                   ? 'No items need your attention right now. Keep up the great work!'
                   : 'Feedback from customers will appear here once received.'}

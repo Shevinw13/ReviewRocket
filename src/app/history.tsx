@@ -15,6 +15,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
+import { useTheme } from '@/theme/ThemeContext';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import type { ReviewRequest } from '@/types';
 
@@ -31,21 +32,21 @@ function formatDate(date: Date): string {
 
 function getStatusLabel(request: ReviewRequest): { text: string; color: string; icon: string } {
   if (request.rating != null && request.rating >= 4) {
-    return { text: 'Positive', color: 'text-success-green', icon: 'checkmark-circle' };
+    return { text: 'Positive', color: '#22C55E', icon: 'checkmark-circle' };
   }
   if (request.rating != null && request.rating <= 3) {
-    return { text: 'Needs follow-up', color: 'text-orange-500', icon: 'alert-circle' };
+    return { text: 'Needs follow-up', color: '#F97316', icon: 'alert-circle' };
   }
   if (request.status === 'sent' || request.status === 'delivered') {
-    return { text: 'Awaiting reply', color: 'text-navy/50', icon: 'time-outline' };
+    return { text: 'Awaiting reply', color: '#9CA3AF', icon: 'time-outline' };
   }
   if (request.status === 'expired') {
-    return { text: 'No response', color: 'text-navy/40', icon: 'close-circle-outline' };
+    return { text: 'No response', color: '#9CA3AF', icon: 'close-circle-outline' };
   }
   if (request.status === 'failed') {
-    return { text: 'Failed to send', color: 'text-red-500', icon: 'warning-outline' };
+    return { text: 'Failed to send', color: '#EF4444', icon: 'warning-outline' };
   }
-  return { text: 'Sent', color: 'text-navy/50', icon: 'time-outline' };
+  return { text: 'Sent', color: '#9CA3AF', icon: 'time-outline' };
 }
 
 function renderStars(rating: number) {
@@ -68,6 +69,7 @@ function renderStars(rating: number) {
 export default function HistoryScreen() {
   const reviewRequestRepo = useService('reviewRequests');
   const { data: profile } = useBusinessProfile();
+  const { colors: t, isDark } = useTheme();
   const businessId = profile?.id;
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -112,7 +114,7 @@ export default function HistoryScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-card-bg" edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: t.bg }} edges={['top']}>
       {/* Header with back button */}
       <View className="flex-row items-center px-5 pt-4 pb-4">
         <Pressable
@@ -121,9 +123,9 @@ export default function HistoryScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color="#0B1D3A" />
+          <Ionicons name="arrow-back" size={24} color={t.text} />
         </Pressable>
-        <Text className="text-heading font-bold text-navy flex-1">
+        <Text className="text-heading font-bold flex-1" style={{ color: t.text }}>
           Request History
         </Text>
       </View>
@@ -159,22 +161,24 @@ export default function HistoryScreen() {
               <Pressable
                 key={request.id}
                 onPress={() => toggleExpand(request.id)}
-                className={`bg-white rounded-2xl border mb-3 overflow-hidden active:opacity-90 ${
-                  isExpanded ? 'border-teal/30' : 'border-light-gray'
-                }`}
+                className={`rounded-2xl border mb-3 overflow-hidden active:opacity-90`}
+                style={{
+                  backgroundColor: t.cardBg,
+                  borderColor: isExpanded ? '#0CBFA6' : t.border,
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={`${customerName}, ${status.text}`}
               >
                 {/* Main Row */}
                 <View className="flex-row items-center px-4 py-3.5">
                   {/* Avatar */}
-                  <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
+                  <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: isDark ? '#2A3A4E' : '#F2F4F7' }}>
                     <Ionicons name="person" size={20} color="#9CA3AF" />
                   </View>
 
                   {/* Customer Info */}
                   <View className="flex-1">
-                    <Text className="text-body font-semibold text-navy" numberOfLines={1}>
+                    <Text className="text-body font-semibold" style={{ color: t.text }} numberOfLines={1}>
                       {customerName}
                     </Text>
                     <View className="flex-row items-center mt-1">
@@ -183,7 +187,7 @@ export default function HistoryScreen() {
                           {renderStars(request.rating)}
                         </View>
                       ) : (
-                        <Text className={`text-caption ${status.color}`}>
+                        <Text className="text-caption" style={{ color: status.color }}>
                           {status.text}
                         </Text>
                       )}
@@ -192,13 +196,13 @@ export default function HistoryScreen() {
 
                   {/* Date + Chevron */}
                   <View className="items-end">
-                    <Text className="text-caption text-navy/40">
+                    <Text className="text-caption" style={{ color: t.textMuted }}>
                       {formatDate(request.createdAt)}
                     </Text>
                     <Ionicons
                       name={isExpanded ? 'chevron-up' : 'chevron-down'}
                       size={16}
-                      color="#9CA3AF"
+                      color={t.textMuted}
                       style={{ marginTop: 4 }}
                     />
                   </View>
@@ -206,7 +210,7 @@ export default function HistoryScreen() {
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <View className="px-4 pb-4 pt-1 border-t border-light-gray">
+                  <View className="px-4 pb-4 pt-1" style={{ borderTopWidth: 1, borderTopColor: t.border }}>
                     {/* Status + Service Info */}
                     <View className="flex-row items-center mb-3 mt-2">
                       <Ionicons
@@ -219,13 +223,13 @@ export default function HistoryScreen() {
                           : '#9CA3AF'
                         }
                       />
-                      <Text className={`text-caption font-medium ml-1.5 ${status.color}`}>
+                      <Text className="text-caption font-medium ml-1.5" style={{ color: t.textSecondary }}>
                         {status.text}
                       </Text>
                       {request.serviceType && (
                         <>
-                          <Text className="text-caption text-navy/30 mx-2">•</Text>
-                          <Text className="text-caption text-navy/50">
+                          <Text className="text-caption mx-2" style={{ color: t.textMuted }}>•</Text>
+                          <Text className="text-caption" style={{ color: t.textMuted }}>
                             {request.serviceType}
                           </Text>
                         </>
@@ -236,34 +240,30 @@ export default function HistoryScreen() {
                     <View className="flex-row gap-2">
                       <Pressable
                         onPress={() => handleCall(request.customerPhone, customerName)}
-                        className="flex-row items-center bg-card-bg rounded-xl px-3 py-2 active:opacity-70"
+                        className="flex-row items-center rounded-xl px-3 py-2 active:opacity-70"
+                        style={{ backgroundColor: isDark ? '#2A3A4E' : '#F2F4F7' }}
                         accessibilityRole="button"
                         accessibilityLabel={`Call ${customerName}`}
                       >
-                        <Ionicons name="call-outline" size={16} color="#0B1D3A" />
-                        <Text className="text-caption font-medium text-navy ml-1.5">
-                          Call
-                        </Text>
+                        <Ionicons name="call-outline" size={16} color={t.text} />
+                        <Text className="text-caption font-medium ml-1.5" style={{ color: t.text }}>Call</Text>
                       </Pressable>
 
                       <Pressable
                         onPress={() => handleText(request.customerPhone, customerName)}
-                        className="flex-row items-center bg-card-bg rounded-xl px-3 py-2 active:opacity-70"
+                        className="flex-row items-center rounded-xl px-3 py-2 active:opacity-70"
+                        style={{ backgroundColor: isDark ? '#2A3A4E' : '#F2F4F7' }}
                         accessibilityRole="button"
                         accessibilityLabel={`Text ${customerName}`}
                       >
-                        <Ionicons name="chatbubble-outline" size={16} color="#0B1D3A" />
-                        <Text className="text-caption font-medium text-navy ml-1.5">
-                          Text
-                        </Text>
+                        <Ionicons name="chatbubble-outline" size={16} color={t.text} />
+                        <Text className="text-caption font-medium ml-1.5" style={{ color: t.text }}>Text</Text>
                       </Pressable>
 
                       {request.status === 'sent' || request.status === 'delivered' ? (
                         <View className="flex-row items-center bg-teal/5 rounded-xl px-3 py-2">
                           <Ionicons name="time-outline" size={16} color="#0CBFA6" />
-                          <Text className="text-caption font-medium text-teal ml-1.5">
-                            Waiting...
-                          </Text>
+                          <Text className="text-caption font-medium text-teal ml-1.5">Waiting...</Text>
                         </View>
                       ) : null}
 
@@ -283,9 +283,7 @@ export default function HistoryScreen() {
                           accessibilityLabel={`Send again to ${customerName}`}
                         >
                           <Ionicons name="refresh-outline" size={16} color="#0CBFA6" />
-                          <Text className="text-caption font-medium text-teal ml-1.5">
-                            Send Again
-                          </Text>
+                          <Text className="text-caption font-medium text-teal ml-1.5">Send Again</Text>
                         </Pressable>
                       )}
                     </View>
