@@ -102,12 +102,12 @@ export function buildPositiveResponse(googleReviewUrl: string): TwiMLResponse {
 }
 
 /**
- * Build a TwiML response acknowledging a negative rating with empathy.
- * Does not solicit additional written feedback — a team member will follow up directly.
+ * Build a TwiML response for a negative rating that asks for written feedback.
+ * The customer's reply will be stored in the inbox for the business owner.
  */
 export function buildNegativeResponse(): TwiMLResponse {
   const message =
-    "Thank you for your honesty \u2014 we're sorry your experience didn't meet expectations. Someone from our team will reach out to you shortly to make things right.";
+    "We're sorry to hear that. Would you mind sharing what went wrong so we can do better? Just reply with a few words — your feedback helps us improve.";
   return buildTwiMLMessage(message);
 }
 

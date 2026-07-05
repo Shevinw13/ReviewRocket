@@ -66,6 +66,9 @@ if (!IS_MOCK_MODE) {
   const {
     ExpoNotificationAdapter,
   } = require("@/infrastructure/notifications/notification.adapter");
+  const {
+    SupabaseInboxItemRepository,
+  } = require("@/infrastructure/supabase/repositories/inbox-item.repository");
 
   realAuthService = new SupabaseAuthAdapter();
   realMonitoringService = new SentryMonitoringAdapter();
@@ -81,6 +84,7 @@ if (!IS_MOCK_MODE) {
     ReviewRequest: SupabaseReviewRequestRepository,
     FeedbackRecord: SupabaseFeedbackRecordRepository,
     Notification: ExpoNotificationAdapter,
+    InboxItem: SupabaseInboxItemRepository,
   };
 }
 

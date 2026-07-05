@@ -196,7 +196,10 @@ export default function SignupScreen() {
         {/* Google Review Link */}
         <View className="mb-5">
           <Text className="text-body font-medium text-navy mb-1">
-            Google Review Link
+            Google Review Link (optional)
+          </Text>
+          <Text className="text-caption text-navy/50 mb-2">
+            You can add this later from Settings. Happy customers will be directed here.
           </Text>
           <GoogleReviewLinkPicker onBusinessConnected={handleBusinessConnected} />
           {errors.googleReviewUrl?.message && (

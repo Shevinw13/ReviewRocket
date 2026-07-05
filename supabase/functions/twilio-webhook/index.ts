@@ -332,7 +332,12 @@ async function handleAwaitingRating(
 
     if (rating >= 4) {
       // Positive rating (4-5): respond with Google Review URL (Requirement 4.3)
-      return twimlResponse(buildPositiveResponse(conversation.googleReviewUrl));
+      // If no Google Review URL configured, send a simple thank you
+      if (conversation.googleReviewUrl) {
+        return twimlResponse(buildPositiveResponse(conversation.googleReviewUrl));
+      } else {
+        return twimlResponse(buildThankYouResponse());
+      }
     } else {
       // Negative rating (1-3): respond with feedback prompt (Requirement 4.4)
       // Trigger push notification to business owner (Requirement 7.1)
@@ -427,8 +432,28 @@ async function handleAwaitingFeedbackText(
     },
   });
 
-  // Send push notification for written feedback (Requirement 7.2)
+  // Create inbox item so the business owner sees the feedback in their inbox
   const customerDisplay = conversation.customerName || "A customer";
+  const inboxResult = await createInboxItem(client, {
+    businessId: conversation.businessId,
+    type: "feedback_received",
+    title: "New Customer Feedback",
+    body: `${customerDisplay} shared written feedback about their experience. Scroll down to review and respond.`,
+    metadata: {
+      reviewRequestId: conversation.reviewRequestId,
+      rating: undefined, // rating is on the feedback_record, not available here directly
+    },
+  });
+
+  if (!inboxResult.success) {
+    console.error(
+      "[twilio-webhook] Failed to create feedback inbox item:",
+      sanitizeForLogging({ error: inboxResult.error.message }),
+    );
+    // Non-fatal: feedback is stored regardless
+  }
+
+  // Send push notification for written feedback (Requirement 7.2)
   await sendPushNotification(
     client,
     conversation.businessId,

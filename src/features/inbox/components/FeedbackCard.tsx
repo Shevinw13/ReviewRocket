@@ -19,12 +19,18 @@ export interface FeedbackCardProps {
   rating: number;
   /** Optional written feedback text */
   feedbackText?: string;
+  /** Optional job note / service type for context */
+  jobNote?: string;
   /** Date the feedback was received */
   createdAt: Date;
   /** Whether this feedback has been resolved */
   isResolved: boolean;
+  /** Whether this is a new/unread feedback item */
+  isNew?: boolean;
   /** Called when "Call Customer" is tapped */
   onCall: () => void;
+  /** Called when "Text Customer" is tapped */
+  onText?: () => void;
   /** Called when "Mark Resolved" is tapped */
   onResolve: () => void;
   /** Whether the resolve action is currently loading */
@@ -35,7 +41,9 @@ export interface FeedbackCardProps {
 function getRatingColor(rating: number): string {
   if (rating === 1) return '#EF4444'; // red
   if (rating === 2) return '#F97316'; // orange
-  return '#EAB308'; // yellow for 3
+  if (rating === 3) return '#EAB308'; // yellow
+  if (rating === 4) return '#22C55E'; // green
+  return '#16A34A'; // darker green for 5
 }
 
 /** Formats a Date into a short readable string */
@@ -65,9 +73,12 @@ export function FeedbackCard({
   customerName,
   rating,
   feedbackText,
+  jobNote,
   createdAt,
   isResolved,
+  isNew = false,
   onCall,
+  onText,
   onResolve,
   isResolving = false,
 }: FeedbackCardProps) {
@@ -75,29 +86,42 @@ export function FeedbackCard({
 
   return (
     <View
-      className="bg-white rounded-2xl p-4 border border-light-gray mb-3"
+      className={`bg-white rounded-2xl p-4 border mb-3 ${isNew ? 'border-teal/40' : 'border-light-gray'}`}
       accessibilityRole="summary"
       accessibilityLabel={`Feedback from ${customerName}, rating ${rating} out of 5`}
     >
       {/* Header: Rating badge + Customer Name + Date */}
       <View className="flex-row items-center mb-2">
-        {/* Rating Circle */}
+        {/* Rating Circle with /5 label */}
         <View
           className="w-9 h-9 rounded-full items-center justify-center mr-3"
           style={{ backgroundColor: ratingColor }}
-          accessibilityLabel={`Rating ${rating}`}
+          accessibilityLabel={`Rating ${rating} out of 5`}
         >
-          <Text className="text-white font-bold text-body">{rating}</Text>
+          <Text className="text-white font-bold text-[13px]">{rating}/5</Text>
         </View>
 
         {/* Customer Name + Date */}
         <View className="flex-1">
-          <Text className="text-body font-bold text-navy" numberOfLines={1}>
-            {customerName}
-          </Text>
-          <Text className="text-caption text-navy/50 mt-0.5">
-            {formatDate(createdAt)}
-          </Text>
+          <View className="flex-row items-center">
+            <Text className="text-body font-bold text-navy" numberOfLines={1}>
+              {customerName}
+            </Text>
+            {isNew && (
+              <View className="ml-2 bg-teal/10 rounded-full px-2 py-0.5">
+                <Text className="text-[10px] font-bold text-teal">NEW</Text>
+              </View>
+            )}
+          </View>
+          {jobNote ? (
+            <Text className="text-caption text-navy/50 mt-0.5" numberOfLines={1}>
+              {jobNote} • {formatDate(createdAt)}
+            </Text>
+          ) : (
+            <Text className="text-caption text-navy/50 mt-0.5">
+              {formatDate(createdAt)}
+            </Text>
+          )}
         </View>
 
         {/* Resolved indicator */}
@@ -121,7 +145,7 @@ export function FeedbackCard({
 
       {/* Action Buttons (only for unresolved) */}
       {!isResolved && (
-        <View className="flex-row ml-12 mt-1 gap-2">
+        <View className="flex-row ml-12 mt-1 gap-2 flex-wrap">
           <Pressable
             onPress={onCall}
             className="flex-row items-center bg-card-bg rounded-xl px-3 py-2 active:opacity-70"
@@ -130,9 +154,23 @@ export function FeedbackCard({
           >
             <Ionicons name="call-outline" size={16} color="#0B1D3A" />
             <Text className="text-caption font-medium text-navy ml-1.5">
-              Call Customer
+              Call
             </Text>
           </Pressable>
+
+          {onText && (
+            <Pressable
+              onPress={onText}
+              className="flex-row items-center bg-card-bg rounded-xl px-3 py-2 active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel={`Text ${customerName}`}
+            >
+              <Ionicons name="chatbubble-outline" size={16} color="#0B1D3A" />
+              <Text className="text-caption font-medium text-navy ml-1.5">
+                Text
+              </Text>
+            </Pressable>
+          )}
 
           <Pressable
             onPress={onResolve}
@@ -149,7 +187,7 @@ export function FeedbackCard({
               color="#22C55E"
             />
             <Text className="text-caption font-medium text-success-green ml-1.5">
-              {isResolving ? 'Resolving...' : 'Mark Resolved'}
+              {isResolving ? 'Resolving...' : 'Resolve'}
             </Text>
           </Pressable>
         </View>

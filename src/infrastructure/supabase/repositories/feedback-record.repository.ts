@@ -152,7 +152,7 @@ export class SupabaseFeedbackRecordRepository implements IFeedbackRepository {
   }
 
   /**
-   * Retrieves all feedback records with rating <= 3 for a business (including resolved),
+   * Retrieves all feedback records for a business (all ratings, including resolved),
    * sorted by most recent first. Used for the "All Feedback" inbox view.
    */
   async getAll(businessId: string): Promise<Result<FeedbackRecord[]>> {
@@ -161,7 +161,6 @@ export class SupabaseFeedbackRecordRepository implements IFeedbackRepository {
         .from('feedback_records')
         .select()
         .eq('business_id', businessId)
-        .lte('rating', 3)
         .order('created_at', { ascending: false });
 
       if (error) {

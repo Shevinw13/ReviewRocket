@@ -106,7 +106,7 @@ export interface ActivityItem {
 export interface InboxItem {
   id: string;
   businessId: string;
-  type: 'opt_out' | 'system';
+  type: 'opt_out' | 'feedback_received' | 'system';
   title: string;
   body: string;
   isDismissed: boolean;

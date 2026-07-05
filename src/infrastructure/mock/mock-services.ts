@@ -58,11 +58,11 @@ const FAKE_SESSION: AuthSession = {
 const FAKE_BUSINESS_PROFILE: BusinessProfile = {
   id: FAKE_BUSINESS_ID,
   authUserId: FAKE_USER_ID,
-  firstName: 'Shevin',
-  lastName: 'Weinstein',
-  businessName: 'SAW Services',
+  firstName: 'Alex',
+  lastName: 'Mitchell',
+  businessName: 'Mitchell Plumbing Co.',
   email: FAKE_EMAIL,
-  googleReviewUrl: 'https://google.com/maps/place/saw-services',
+  googleReviewUrl: 'https://google.com/maps/place/mitchell-plumbing',
   subscriptionTier: 'growth',
   smsUsedThisPeriod: 47,
   billingPeriodStart: new Date('2024-01-01'),
@@ -205,6 +205,22 @@ function generateFakeFeedbackRecords(): FeedbackRecord[] {
       createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
     },
     {
+      id: 'fb-007',
+      reviewRequestId: 'rr-001',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 5,
+      isResolved: false,
+      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    },
+    {
+      id: 'fb-008',
+      reviewRequestId: 'rr-002',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 5,
+      isResolved: false,
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
+    },
+    {
       id: 'fb-002',
       reviewRequestId: 'rr-008',
       businessId: FAKE_BUSINESS_ID,
@@ -214,6 +230,14 @@ function generateFakeFeedbackRecords(): FeedbackRecord[] {
       createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
     },
     {
+      id: 'fb-009',
+      reviewRequestId: 'rr-003',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 4,
+      isResolved: false,
+      createdAt: new Date(Date.now() - 20 * 60 * 60 * 1000),
+    },
+    {
       id: 'fb-003',
       reviewRequestId: 'rr-012',
       businessId: FAKE_BUSINESS_ID,
@@ -221,6 +245,14 @@ function generateFakeFeedbackRecords(): FeedbackRecord[] {
       feedbackText: "Called for an emergency at 8pm and no one answered. Had to find another service. Very disappointing.",
       isResolved: false,
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+    {
+      id: 'fb-010',
+      reviewRequestId: 'rr-004',
+      businessId: FAKE_BUSINESS_ID,
+      rating: 5,
+      isResolved: false,
+      createdAt: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000),
     },
     {
       id: 'fb-004',
@@ -436,7 +468,7 @@ class MockFeedbackRepository implements IFeedbackRepository {
   async getUnresolved(_businessId: string): Promise<Result<FeedbackRecord[]>> {
     return {
       success: true,
-      data: this._records.filter((r) => !r.isResolved),
+      data: this._records.filter((r) => !r.isResolved && r.rating <= 3),
     };
   }
 
@@ -488,6 +520,16 @@ class MockInboxItemRepository implements IInboxItemRepository {
       isDismissed: false,
       metadata: { customerPhone: '(555) 234-8901' },
       createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    },
+    {
+      id: 'inbox-feedback-001',
+      businessId: FAKE_BUSINESS_ID,
+      type: 'feedback_received',
+      title: 'New Customer Feedback',
+      body: 'Sarah Williams shared written feedback about their experience. Scroll down to review and respond.',
+      isDismissed: false,
+      metadata: { reviewRequestId: 'rr-mock-001' },
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     },
   ];
 

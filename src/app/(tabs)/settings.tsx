@@ -186,7 +186,15 @@ export default function SettingsScreen() {
                 <Text className="text-body font-semibold text-navy">
                   {profile?.businessName ?? '—'}
                 </Text>
-                <Text className="text-caption text-navy/50">Business</Text>
+                {profile?.googleReviewUrl ? (
+                  <Text className="text-caption text-navy/50" numberOfLines={1}>
+                    {profile.googleReviewUrl.replace(/^https?:\/\//, '').slice(0, 40)}...
+                  </Text>
+                ) : (
+                  <Text className="text-caption text-amber-500">
+                    Google Review link not set
+                  </Text>
+                )}
               </View>
               <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
             </Pressable>

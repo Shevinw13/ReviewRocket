@@ -20,6 +20,7 @@ import type { AppError } from '@/types';
 import { useService } from '@/services';
 import { formatPhoneNumber, normalizePhoneNumber } from '@/utils/phone';
 import { withRetry } from '@/utils/retry';
+import { hapticSuccess, hapticWarning } from '@/utils/haptics';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { SuccessIndicator } from '@/components/ui/SuccessIndicator';
@@ -153,6 +154,7 @@ export default function SendRequestScreen() {
         }
 
         // Show success confirmation, then navigate back to dashboard
+        hapticSuccess();
         setSuccessState({
           phoneNumber: formatPhoneNumber(data.phoneNumber),
           customerName: data.customerName || undefined,
@@ -185,6 +187,7 @@ export default function SendRequestScreen() {
         setErrorMessage(
           error.message || 'Failed to send review request. Please try again.',
         );
+        hapticWarning();
       }
     },
     [businessId, smsService, reset],
@@ -241,6 +244,16 @@ export default function SendRequestScreen() {
 
         {/* White Card Content - rounds into navy, fills downward */}
         <View className="rounded-t-3xl bg-white px-6 pt-8 pb-6 -mt-4">
+          {/* How it works hint (shown when form is empty) */}
+          {!successState && !errorMessage && !phoneValue && (
+            <View className="bg-teal/5 border border-teal/20 rounded-xl p-3 mb-5 flex-row items-start">
+              <Ionicons name="information-circle-outline" size={18} color="#0CBFA6" style={{ marginTop: 1 }} />
+              <Text className="text-caption text-navy/70 ml-2 flex-1">
+                Your customer will receive a text asking them to rate their experience 1-5. Happy customers get your Google review link. Unhappy ones come directly to you.
+              </Text>
+            </View>
+          )}
+
           {/* Success State */}
           {successState && (
             <View className="mb-6">
@@ -268,7 +281,7 @@ export default function SendRequestScreen() {
                 {successState.serviceType && (
                   <>
                     <Text className="text-caption text-navy/60 mt-2 mb-1">
-                      Service
+                      Job Note
                     </Text>
                     <Text className="text-body font-medium text-navy">
                       {successState.serviceType}
@@ -358,27 +371,27 @@ export default function SendRequestScreen() {
             )}
           </View>
 
-          {/* Service Type Input */}
+          {/* Job Note Input */}
           <View className="mb-5">
             <Text className="text-sm font-medium text-navy mb-2">
-              Service Type (optional)
+              Job Note (optional)
             </Text>
             <View className="flex-row items-center border border-light-gray rounded-xl bg-card-bg px-4">
-              <Ionicons name="construct-outline" size={20} color="#9CA3AF" />
+              <Ionicons name="document-text-outline" size={20} color="#9CA3AF" />
               <Controller
                 control={control}
                 name="serviceType"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
                     className="flex-1 ml-3 py-4 text-body text-navy"
-                    placeholder="e.g. Plumbing Repair"
+                    placeholder="e.g. Kitchen faucet, 123 Oak St"
                     placeholderTextColor="#9CA3AF"
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
-                    maxLength={50}
-                    autoCapitalize="words"
-                    accessibilityLabel="Service Type"
+                    maxLength={80}
+                    autoCapitalize="sentences"
+                    accessibilityLabel="Job Note"
                   />
                 )}
               />

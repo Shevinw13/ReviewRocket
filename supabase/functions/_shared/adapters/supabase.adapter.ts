@@ -614,13 +614,13 @@ export async function checkOptOutStatus(
 }
 
 /**
- * Create an inbox item (e.g., opt-out notification for the business owner).
+ * Create an inbox item (e.g., opt-out notification, feedback received, or system alert).
  */
 export async function createInboxItem(
   client: SupabaseClient,
   params: {
     businessId: string;
-    type: "opt_out" | "system";
+    type: "opt_out" | "feedback_received" | "system";
     title: string;
     body: string;
     metadata?: Record<string, unknown>;

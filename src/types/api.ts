@@ -14,7 +14,7 @@ export interface SignUpParams {
   businessName: string;
   email: string;
   password: string;
-  googleReviewUrl: string;
+  googleReviewUrl?: string;
 }
 
 /** Parameters for logging in an existing user. */

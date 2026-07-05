@@ -16,7 +16,8 @@ export const signUpSchema = z.object({
   googleReviewUrl: z
     .string()
     .url('Please enter a valid URL')
-    .min(1, 'Google review link is required'),
+    .optional()
+    .or(z.literal('')),
 });
 
 export const sendRequestSchema = z.object({
@@ -27,7 +28,7 @@ export const sendRequestSchema = z.object({
       'Must be a valid US phone number',
     ),
   customerName: z.string().max(50).optional().or(z.literal('')),
-  serviceType: z.string().max(50).optional().or(z.literal('')),
+  serviceType: z.string().max(80).optional().or(z.literal('')),
 });
 
 export const ratingSchema = z.number().int().min(1).max(5);

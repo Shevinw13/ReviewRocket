@@ -20,6 +20,10 @@ export interface DashboardMetricsProps {
   /** Day-level data (optional) */
   dayOverDayChange?: number | null;
   dayCount?: number;
+  /** Controlled period (if provided, component won't manage its own state) */
+  period?: ComparisonPeriod;
+  /** Called when period changes */
+  onPeriodChange?: (period: ComparisonPeriod) => void;
 }
 
 export function DashboardMetrics({
@@ -28,8 +32,17 @@ export function DashboardMetrics({
   weekCount,
   dayOverDayChange = null,
   dayCount,
+  period: controlledPeriod,
+  onPeriodChange,
 }: DashboardMetricsProps) {
-  const [period, setPeriod] = useState<ComparisonPeriod>('month');
+  const [internalPeriod, setInternalPeriod] = useState<ComparisonPeriod>('month');
+  const [showChart, setShowChart] = useState(false);
+
+  const period = controlledPeriod ?? internalPeriod;
+  const setPeriod = (p: ComparisonPeriod) => {
+    setInternalPeriod(p);
+    onPeriodChange?.(p);
+  };
 
   const {
     reviewOpportunities,
@@ -56,6 +69,24 @@ export function DashboardMetrics({
     period === 'month' ? 'vs last month'
     : period === 'week' ? 'vs last week'
     : 'vs yesterday';
+
+  // Calculate previous period count from change percentage
+  const previousCount =
+    changeValue !== null && changeValue !== undefined && changeValue !== -100
+      ? Math.round(currentCount / (1 + changeValue / 100))
+      : 0;
+
+  const currentLabel =
+    period === 'month' ? 'This Month'
+    : period === 'week' ? 'This Week'
+    : 'Today';
+  const previousLabel =
+    period === 'month' ? 'Last Month'
+    : period === 'week' ? 'Last Week'
+    : 'Yesterday';
+
+  // Bar chart scaling
+  const maxCount = Math.max(currentCount, previousCount, 1);
 
   // Format comparison display
   const changeDisplay =
@@ -132,7 +163,12 @@ export function DashboardMetrics({
               {currentCount === 1 ? `1 ${periodLabel}` : `${currentCount} ${periodLabel}`}
             </Text>
           </View>
-          <View className="flex-row items-center bg-card-bg rounded-xl px-3 py-1.5">
+          <Pressable
+            onPress={() => setShowChart(!showChart)}
+            className="flex-row items-center bg-card-bg rounded-xl px-3 py-1.5 active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel={`${changeDisplay} ${comparisonLabel}. Tap to ${showChart ? 'hide' : 'show'} chart`}
+          >
             {changeValue !== null && changeValue !== undefined && (
               <Ionicons
                 name={changeValue >= 0 ? 'trending-up' : 'trending-down'}
@@ -144,8 +180,54 @@ export function DashboardMetrics({
             <Text className={`text-caption font-semibold ${changeColor}`}>
               {changeDisplay} {comparisonLabel}
             </Text>
-          </View>
+          </Pressable>
         </View>
+
+        {/* Comparison Bar Chart (expandable) */}
+        {showChart && changeValue !== null && changeValue !== undefined && (
+          <View className="mt-5 pt-4 border-t border-light-gray">
+            {/* Current Period Bar */}
+            <View className="mb-3">
+              <View className="flex-row items-center justify-between mb-1.5">
+                <Text className="text-caption font-medium text-navy">{currentLabel}</Text>
+                <Text className="text-caption font-bold text-navy">{currentCount}</Text>
+              </View>
+              <View className="h-7 bg-card-bg rounded-lg overflow-hidden">
+                <View
+                  className="h-7 rounded-lg bg-teal"
+                  style={{ width: `${(currentCount / maxCount) * 100}%` }}
+                />
+              </View>
+            </View>
+
+            {/* Previous Period Bar */}
+            <View>
+              <View className="flex-row items-center justify-between mb-1.5">
+                <Text className="text-caption font-medium text-navy/60">{previousLabel}</Text>
+                <Text className="text-caption font-bold text-navy/60">{previousCount}</Text>
+              </View>
+              <View className="h-7 bg-card-bg rounded-lg overflow-hidden">
+                <View
+                  className="h-7 rounded-lg bg-navy/20"
+                  style={{ width: `${(previousCount / maxCount) * 100}%` }}
+                />
+              </View>
+            </View>
+
+            {/* Change Summary */}
+            <View className="flex-row items-center justify-center mt-4 bg-card-bg rounded-xl py-2">
+              <Ionicons
+                name={changeValue >= 0 ? 'arrow-up' : 'arrow-down'}
+                size={14}
+                color={changeValue >= 0 ? '#22C55E' : '#EF4444'}
+                style={{ marginRight: 4 }}
+              />
+              <Text className={`text-caption font-semibold ${changeColor}`}>
+                {Math.abs(currentCount - previousCount)} {changeValue >= 0 ? 'more' : 'fewer'} than {previousLabel.toLowerCase()}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Three Metric Boxes Row */}

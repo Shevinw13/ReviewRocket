@@ -24,7 +24,9 @@ import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useDashboardMetrics } from '@/features/dashboard/hooks/useDashboardMetrics';
 import { useRecentActivity } from '@/features/dashboard/hooks/useRecentActivity';
 import { DashboardMetrics } from '@/features/dashboard/components/DashboardMetrics';
+import type { ComparisonPeriod } from '@/features/dashboard/components/DashboardMetrics';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import type { DashboardMetrics as DashboardMetricsType, ActivityItem } from '@/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -76,6 +78,7 @@ export default function DashboardScreen() {
   const { data: recentActivity, isLoading: activityLoading } = useRecentActivity();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<ComparisonPeriod>('month');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isInitialLoading = profileLoading || metricsLoading || activityLoading;
@@ -108,6 +111,27 @@ export default function DashboardScreen() {
 
   const displayMetrics = metrics ?? EMPTY_METRICS;
   const activity = recentActivity ?? [];
+
+  // Filter activity by selected period
+  const filteredActivity = activity.filter((item) => {
+    const itemDate = new Date(item.createdAt);
+    const now = new Date();
+    if (selectedPeriod === 'day') {
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return itemDate >= startOfDay;
+    }
+    if (selectedPeriod === 'week') {
+      const dayOfWeek = now.getDay();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - dayOfWeek);
+      startOfWeek.setHours(0, 0, 0, 0);
+      return itemDate >= startOfWeek;
+    }
+    // month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return itemDate >= startOfMonth;
+  });
+
   const hasData =
     displayMetrics.reviewOpportunities > 0 ||
     displayMetrics.positiveResponses > 0 ||
@@ -118,9 +142,17 @@ export default function DashboardScreen() {
   if (isInitialLoading && !profile) {
     return (
       <SafeAreaView className="flex-1 bg-navy" edges={['top']}>
-        <View className="flex-1 bg-card-bg items-center justify-center">
-          <LoadingIndicator size="large" />
+        <View className="bg-navy px-5 pt-6 pb-8">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1">
+              <View style={{ width: 100, height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.1)', marginBottom: 8 }} />
+              <View style={{ width: 180, height: 24, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            </View>
+          </View>
         </View>
+        <ScrollView className="flex-1 bg-card-bg" contentContainerClassName="pb-12">
+          <DashboardSkeleton />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -193,11 +225,36 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <>
+              {/* Google Review URL Missing Banner */}
+              {profile && !profile.googleReviewUrl && (
+                <Pressable
+                  onPress={() => router.push('/edit-business')}
+                  className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex-row items-center active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Add your Google Review link"
+                >
+                  <View className="w-9 h-9 rounded-full bg-amber-100 items-center justify-center mr-3">
+                    <Ionicons name="link-outline" size={18} color="#F59E0B" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-body font-medium text-navy">
+                      Add your Google Review link
+                    </Text>
+                    <Text className="text-caption text-navy/60 mt-0.5">
+                      Happy customers will be directed to leave a public review
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                </Pressable>
+              )}
+
               {/* Metrics Section */}
               <DashboardMetrics
                 metrics={displayMetrics}
                 weekOverWeekChange={metrics?.weekOverWeekChange ?? null}
                 weekCount={metrics?.weekCount ?? 0}
+                period={selectedPeriod}
+                onPeriodChange={setSelectedPeriod}
               />
 
               {/* CTA Button */}
@@ -232,29 +289,40 @@ export default function DashboardScreen() {
                   )}
                 </View>
 
-                {activity.length === 0 ? (
+                {filteredActivity.length === 0 ? (
                   /* Empty State */
                   <View className="bg-white rounded-2xl p-6 border border-light-gray items-center">
                     <Ionicons name="chatbubbles-outline" size={32} color="#E5E7EB" />
                     <Text className="text-body text-navy/40 mt-3 text-center">
-                      No activity yet
+                      {selectedPeriod === 'day'
+                        ? 'No activity today'
+                        : selectedPeriod === 'week'
+                          ? 'No activity this week'
+                          : 'No activity yet'}
                     </Text>
                     <Text className="text-caption text-navy/30 mt-1 text-center">
-                      Send your first review request to see feedback here
+                      {selectedPeriod === 'month'
+                        ? 'Send your first review request to see feedback here'
+                        : 'Activity from this period will show up here'}
                     </Text>
                   </View>
                 ) : (
                   /* Activity Items */
                   <View className="bg-white rounded-2xl border border-light-gray overflow-hidden">
-                    {activity.map((item: ActivityItem, index: number) => (
+                    {filteredActivity.map((item: ActivityItem, index: number) => (
                       <View
                         key={item.id}
                         className={`flex-row items-center px-4 py-3 ${
-                          index < activity.length - 1 ? 'border-b border-light-gray' : ''
+                          index < filteredActivity.length - 1 ? 'border-b border-light-gray' : ''
                         }`}
                       >
                         {/* Icon / Avatar based on type */}
-                        {item.type === 'rating' && (
+                        {item.type === 'rating' && item.rating != null && item.rating >= 4 && (
+                          <View className="w-9 h-9 rounded-full bg-success-green/10 items-center justify-center mr-3">
+                            <Ionicons name="star" size={18} color="#22C55E" />
+                          </View>
+                        )}
+                        {item.type === 'rating' && (item.rating == null || item.rating < 4) && (
                           <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
                             <Ionicons name="person" size={18} color="#9CA3AF" />
                           </View>

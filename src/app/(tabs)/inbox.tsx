@@ -6,7 +6,7 @@
  * Requirements: 6.1, 6.2, 6.6, 6.7
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,20 +19,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQueryClient } from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useService } from '@/services';
 import { useUnresolvedCount } from '@/features/inbox/hooks/useUnresolvedCount';
 import { FeedbackCard } from '@/features/inbox/components/FeedbackCard';
-import { OptOutCard } from '@/features/inbox/components/OptOutCard';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { InboxSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
+import { hapticSuccess } from '@/utils/haptics';
 import { useUnresolvedFeedback, type EnrichedFeedback } from '@/features/inbox/hooks/useUnresolvedFeedback';
 import { useAllFeedback } from '@/features/inbox/hooks/useAllFeedback';
-import { useInboxItems } from '@/features/inbox/hooks/useInboxItems';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type TabFilter = 'needs-attention' | 'all';
+
+const INBOX_LAST_VIEWED_KEY = '@nudgli/inbox_last_viewed';
 
 // ─── Inbox Screen ────────────────────────────────────────────────────────────
 
@@ -44,6 +47,19 @@ export default function InboxScreen() {
   const [activeTab, setActiveTab] = useState<TabFilter>('needs-attention');
   const [refreshing, setRefreshing] = useState(false);
   const [resolvingIds, setResolvingIds] = useState<Set<string>>(new Set());
+  const [lastViewedAt, setLastViewedAt] = useState<Date | null>(null);
+
+  // Load last-viewed timestamp on mount, then update it
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem(INBOX_LAST_VIEWED_KEY);
+      if (stored) {
+        setLastViewedAt(new Date(stored));
+      }
+      // Update the last-viewed timestamp to now
+      await AsyncStorage.setItem(INBOX_LAST_VIEWED_KEY, new Date().toISOString());
+    })();
+  }, []);
 
   // ─── Data Fetching ────────────────────────────────────────────────────
 
@@ -56,12 +72,6 @@ export default function InboxScreen() {
     data: allFeedback,
     isLoading: allLoading,
   } = useAllFeedback();
-
-  const {
-    data: inboxItems,
-    dismiss,
-    isDismissing,
-  } = useInboxItems();
 
   // ─── Determine active data ────────────────────────────────────────────
 
@@ -82,7 +92,6 @@ export default function InboxScreen() {
         queryClient.invalidateQueries({ queryKey: ['unresolved-feedback'] }),
         queryClient.invalidateQueries({ queryKey: ['all-feedback'] }),
         queryClient.invalidateQueries({ queryKey: ['unresolved-count'] }),
-        queryClient.invalidateQueries({ queryKey: ['inbox-items'] }),
       ]);
     } finally {
       setRefreshing(false);
@@ -103,6 +112,18 @@ export default function InboxScreen() {
     Linking.openURL(`tel:${cleanPhone}`);
   }, []);
 
+  const handleText = useCallback((phone: string | undefined, name: string) => {
+    if (!phone) {
+      Alert.alert(
+        'No Phone Number',
+        `Unable to text ${name}. No phone number available.`,
+      );
+      return;
+    }
+    const cleanPhone = phone.replace(/\D/g, '');
+    Linking.openURL(`sms:${cleanPhone}`);
+  }, []);
+
   const handleResolve = useCallback(
     async (feedbackId: string) => {
       setResolvingIds((prev) => new Set(prev).add(feedbackId));
@@ -116,6 +137,7 @@ export default function InboxScreen() {
           return;
         }
         // Invalidate queries to refresh the lists and badge
+        hapticSuccess();
         queryClient.invalidateQueries({ queryKey: ['unresolved-feedback'] });
         queryClient.invalidateQueries({ queryKey: ['all-feedback'] });
         queryClient.invalidateQueries({ queryKey: ['unresolved-count'] });
@@ -200,9 +222,7 @@ export default function InboxScreen() {
 
       {/* Content */}
       {isLoading && feedbackList.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <LoadingIndicator size="large" />
-        </View>
+        <InboxSkeleton />
       ) : (
         <ScrollView
           className="flex-1"
@@ -217,7 +237,7 @@ export default function InboxScreen() {
             />
           }
         >
-          {feedbackList.length === 0 && (activeTab === 'all' || inboxItems.length === 0) ? (
+          {feedbackList.length === 0 ? (
             /* Empty State */
             <View className="items-center justify-center py-16">
               <View className="w-16 h-16 rounded-full bg-success-green/10 items-center justify-center mb-4">
@@ -240,18 +260,6 @@ export default function InboxScreen() {
             </View>
           ) : (
             <>
-              {/* Opt-Out Inbox Cards (only in Needs Attention tab) */}
-              {activeTab === 'needs-attention' &&
-                inboxItems.map((item) => (
-                  <OptOutCard
-                    key={item.id}
-                    title={item.title}
-                    body={item.body}
-                    onDismiss={() => dismiss(item.id)}
-                    isDismissing={isDismissing}
-                  />
-                ))}
-
               {/* Feedback Cards */}
               {feedbackList.map((item: EnrichedFeedback) => (
                 <FeedbackCard
@@ -259,9 +267,12 @@ export default function InboxScreen() {
                   customerName={item.customerName}
                   rating={item.rating}
                   feedbackText={item.feedbackText}
+                  jobNote={item.serviceType}
                   createdAt={new Date(item.createdAt)}
                   isResolved={item.isResolved}
+                  isNew={lastViewedAt ? new Date(item.createdAt) > lastViewedAt : false}
                   onCall={() => handleCall(item.customerPhone, item.customerName)}
+                  onText={() => handleText(item.customerPhone, item.customerName)}
                   onResolve={() => handleResolve(item.id)}
                   isResolving={resolvingIds.has(item.id)}
                 />
