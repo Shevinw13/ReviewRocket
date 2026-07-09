@@ -411,7 +411,7 @@ export default function SendRequestScreen() {
               color="#6B7280"
             />
             <Text className="text-caption text-navy/60 ml-2">
-              Your customer will receive a text from (833) 123-4567
+              Your customer will receive a text from (855) 597-7335
             </Text>
           </View>
 

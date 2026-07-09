@@ -31,6 +31,7 @@ import {
   buildRetryPromptResponse,
   buildConversationEndedResponse,
   buildEmptyResponse,
+  buildHelpResponse,
 } from "../_shared/adapters/twilio.adapter.ts";
 import { hashPhone } from "../_shared/utils/hash.ts";
 import { encrypt, decrypt } from "../_shared/utils/encryption.ts";
@@ -215,13 +216,18 @@ serve(async (req: Request): Promise<Response> => {
     return twimlResponse(buildEmptyResponse());
   }
 
-  // 2. Check for opt-out or opt-in before other processing
+  // 2. Check for opt-out or opt-in or HELP before other processing
   if (isOptOut(optOutType, body)) {
     return await handleOptOut(from);
   }
 
   if (isOptIn(optOutType, body)) {
     return await handleOptIn(from);
+  }
+
+  // Handle HELP keyword
+  if (body.trim().toLowerCase() === 'help') {
+    return twimlResponse(buildHelpResponse());
   }
 
   if (!from || !body) {

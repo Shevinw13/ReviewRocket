@@ -146,6 +146,15 @@ export function buildEmptyResponse(): TwiMLResponse {
 }
 
 /**
+ * Build a TwiML response for the HELP keyword.
+ */
+export function buildHelpResponse(): TwiMLResponse {
+  const message =
+    "Nudgli: You're receiving review request messages sent on behalf of a local business. For support, contact support@nudgli.app. Reply STOP to opt out.";
+  return buildTwiMLMessage(message);
+}
+
+/**
  * Helper to wrap a message in TwiML format.
  */
 function buildTwiMLMessage(message: string): TwiMLResponse {
@@ -172,5 +181,6 @@ export function createTwilioSmsService(): ISmsService {
     buildRetryPromptResponse,
     buildConversationEndedResponse,
     buildEmptyResponse,
+    buildHelpResponse,
   };
 }
