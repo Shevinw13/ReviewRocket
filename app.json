@@ -5,14 +5,19 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "scheme": "nudgli",
+    "privacy": "public",
     "experiments": {
       "typedRoutes": true
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.nudgli.app"
+      "bundleIdentifier": "com.nudgli.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Nudgli does not use your camera.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,6 +47,13 @@
           "color": "#0CBFA6"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "com.nudgli.app"
+      },
+      "privacyPolicyUrl": "https://www.nudgli.app/privacy",
+      "termsOfServiceUrl": "https://www.nudgli.app/terms"
+    }
   }
 }
