@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import NetInfo from '@react-native-community/netinfo';
 
 import { sendRequestSchema, type SendRequestFormData } from '@/types/schemas';
 import { ErrorCode } from '@/types';
@@ -55,6 +56,7 @@ export default function SendRequestScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastSubmittedData, setLastSubmittedData] =
     useState<SendRequestFormData | null>(null);
+  const lastSendTime = useRef(0);
 
   const {
     control,
@@ -105,9 +107,26 @@ export default function SendRequestScreen() {
 
   const sendRequest = useCallback(
     async (data: SendRequestFormData, force = false) => {
+      // Double-tap guard: ignore if sent within last 2 seconds
+      const now = Date.now();
+      if (now - lastSendTime.current < 2000) return;
+      lastSendTime.current = now;
+
       if (!businessId) {
         setErrorMessage('Business profile not loaded. Please try again.');
         return;
+      }
+
+      // Network check
+      try {
+        const netState = await NetInfo.fetch();
+        if (!netState.isConnected) {
+          setErrorMessage('No internet connection. Please check your network and try again.');
+          hapticWarning();
+          return;
+        }
+      } catch {
+        // If NetInfo fails, proceed anyway — the request will fail naturally
       }
 
       setIsSending(true);
