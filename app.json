@@ -16,6 +16,7 @@
       "bundleIdentifier": "com.nudgli.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Nudgli does not use your camera.",
+        "NSContactsUsageDescription": "Nudgli uses your contacts to quickly select a customer's phone number when sending a review request.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -46,7 +47,8 @@
           "icon": "./assets/icon.png",
           "color": "#0CBFA6"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

@@ -13,9 +13,12 @@ import { useFocusEffect, router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useAuthContext } from '@/features/auth/context/AuthContext';
+import { useService } from '@/services';
 import { useTheme, type ThemePreference } from '@/theme/ThemeContext';
 import { TIER_QUOTAS, type SubscriptionTier } from '@/types';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
@@ -39,6 +42,8 @@ export default function SettingsScreen() {
   const { signOut } = useAuthContext();
   const { data: profile, isLoading, refetch } = useBusinessProfile();
   const { preference: themePreference, setPreference: setThemePreference, colors: t } = useTheme();
+  const feedbackRepo = useService('feedback');
+  const reviewRequestRepo = useService('reviewRequests');
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   // Check current notification permission status on mount and focus
@@ -128,6 +133,10 @@ export default function SettingsScreen() {
       ],
     );
   }, [signOut]);
+
+  const handleExportFeedback = useCallback(() => {
+    router.push('/history');
+  }, []);
 
   // ─── Loading State ────────────────────────────────────────────────────────
 
@@ -438,6 +447,27 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Export Feedback */}
+        <View className="mb-6">
+          <Text className="text-caption font-semibold uppercase tracking-wide mb-3" style={{ color: t.textMuted }}>
+            Data
+          </Text>
+          <Pressable
+            onPress={handleExportFeedback}
+            className="rounded-2xl py-4 items-center active:opacity-70"
+            style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}
+            accessibilityRole="button"
+            accessibilityLabel="Export feedback as CSV"
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="download-outline" size={20} color="#0CBFA6" style={{ marginRight: 8 }} />
+              <Text className="text-body font-semibold text-teal">
+                Export Feedback (CSV)
+              </Text>
+            </View>
+          </Pressable>
         </View>
 
         {/* Logout Button */}

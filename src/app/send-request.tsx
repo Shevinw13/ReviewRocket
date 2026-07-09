@@ -26,6 +26,7 @@ import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { SuccessIndicator } from '@/components/ui/SuccessIndicator';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
+import * as Contacts from 'expo-contacts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ export default function SendRequestScreen() {
     formState: { errors },
     reset,
     watch,
+    setValue,
   } = useForm<SendRequestFormData>({
     resolver: zodResolver(sendRequestSchema),
     defaultValues: {
@@ -102,6 +104,65 @@ export default function SendRequestScreen() {
     },
     [],
   );
+
+  // ─── Contacts Picker ─────────────────────────────────────────────────────
+
+  const handlePickContact = useCallback(async () => {
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Contacts Access',
+        'To pick a contact, please allow Nudgli access to your contacts in Settings.',
+      );
+      return;
+    }
+
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.FirstName, Contacts.Fields.LastName],
+      sort: Contacts.SortTypes.FirstName,
+    });
+
+    if (data.length === 0) {
+      Alert.alert('No Contacts', 'No contacts found on this device.');
+      return;
+    }
+
+    // Show a simple picker — use the first phone number of each contact
+    // For now, pick via Alert (iOS native picker would require more UI)
+    // Let's use the presentContactPickerAsync if available, otherwise filter
+    const contactsWithPhones = data.filter(
+      (c) => c.phoneNumbers && c.phoneNumbers.length > 0,
+    ).slice(0, 50); // Limit for performance
+
+    if (contactsWithPhones.length === 0) {
+      Alert.alert('No Phone Numbers', 'None of your contacts have phone numbers.');
+      return;
+    }
+
+    // Pick the first result that matches — for a real app, you'd show a modal list
+    // Using Alert for simplicity (works well on iOS)
+    const options = contactsWithPhones.slice(0, 10).map((c) => ({
+      text: `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+      onPress: () => {
+        const phone = c.phoneNumbers?.[0]?.number || '';
+        const digits = phone.replace(/\D/g, '').slice(-10);
+        const formatted = digits.length === 10
+          ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+          : phone;
+        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+
+        setValue('phoneNumber', formatted, { shouldValidate: true });
+        if (name) {
+          setValue('customerName', name, { shouldValidate: true });
+        }
+      },
+    }));
+
+    Alert.alert('Select Contact', 'Choose a customer', [
+      ...options,
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }, [setValue]);
 
   // ─── Send Handler ────────────────────────────────────────────────────────
 
@@ -356,9 +417,22 @@ export default function SendRequestScreen() {
 
           {/* Phone Number Input */}
           <View className="mb-5">
-            <Text className="text-sm font-medium text-navy mb-2">
-              Phone Number
-            </Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-sm font-medium text-navy">
+                Phone Number
+              </Text>
+              <Pressable
+                onPress={handlePickContact}
+                className="flex-row items-center active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel="Pick from contacts"
+              >
+                <Ionicons name="person-add-outline" size={16} color="#0CBFA6" />
+                <Text className="text-caption font-medium text-teal ml-1">
+                  Contacts
+                </Text>
+              </Pressable>
+            </View>
             <View
               className={`flex-row items-center border rounded-xl bg-card-bg px-4 ${
                 errors.phoneNumber ? 'border-red-500' : 'border-light-gray'

@@ -16,6 +16,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useTheme } from '@/theme/ThemeContext';
+import { exportFeedbackCsv } from '@/utils/exportCsv';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import type { ReviewRequest } from '@/types';
 
@@ -109,6 +110,18 @@ export default function HistoryScreen() {
     Linking.openURL(`sms:${cleanPhone}`);
   }, []);
 
+  const handleExport = useCallback(async () => {
+    if (allRequests.length === 0) {
+      Alert.alert('No Data', 'No requests to export yet.');
+      return;
+    }
+    try {
+      await exportFeedbackCsv(allRequests);
+    } catch {
+      Alert.alert('Export Failed', 'Unable to export feedback. Please try again.');
+    }
+  }, [allRequests]);
+
   const toggleExpand = useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
@@ -128,6 +141,14 @@ export default function HistoryScreen() {
         <Text className="text-heading font-bold flex-1" style={{ color: t.text }}>
           Request History
         </Text>
+        <Pressable
+          onPress={handleExport}
+          className="p-2 active:opacity-70"
+          accessibilityRole="button"
+          accessibilityLabel="Export feedback as CSV"
+        >
+          <Ionicons name="download-outline" size={22} color="#0CBFA6" />
+        </Pressable>
       </View>
 
       {isLoading ? (
