@@ -83,7 +83,7 @@ const PLANS: PlanOption[] = [
     price: '$29.99/mo',
     smsLimit: TIER_QUOTAS.growth,
     recommended: true,
-    trialBadge: '14-day free trial',
+    trialBadge: '7-day free trial',
   },
   {
     tier: 'pro',
