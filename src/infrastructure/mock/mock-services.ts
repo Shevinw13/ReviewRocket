@@ -682,26 +682,52 @@ const FAKE_PLACES_RESULTS: { placeId: string; name: string; formattedAddress: st
 
 class MockPlacesSearchService implements IPlacesSearchService {
   async search(query: string): Promise<Result<{ placeId: string; name: string; formattedAddress: string; rating?: number }[]>> {
-    // Simulate 500ms network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Return empty results for queries shorter than 3 characters
     if (query.length < 3) {
       return { success: true, data: [] };
     }
 
-    // Simulate server error when query is "error" (case-insensitive)
-    if (query.toLowerCase() === 'error') {
-      return {
-        success: false,
-        error: {
-          code: ErrorCode.UNKNOWN,
-          message: 'Search is temporarily unavailable. You can paste your Google Review link below.',
-        },
-      };
+    // Call Google Places API directly (bypassing Supabase Edge Function for testing)
+    const apiKey = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) {
+      return { success: true, data: FAKE_PLACES_RESULTS };
     }
 
-    return { success: true, data: FAKE_PLACES_RESULTS };
+    try {
+      const response = await fetch(
+        'https://places.googleapis.com/v1/places:searchText',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating',
+          },
+          body: JSON.stringify({
+            textQuery: query,
+            languageCode: 'en',
+            maxResultCount: 5,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        console.warn('[PlacesSearch] API error:', response.status);
+        return { success: true, data: FAKE_PLACES_RESULTS };
+      }
+
+      const data = await response.json();
+      const places = (data.places || []).map((place: any) => ({
+        placeId: place.id,
+        name: place.displayName?.text || '',
+        formattedAddress: place.formattedAddress || '',
+        rating: place.rating,
+      }));
+
+      return { success: true, data: places };
+    } catch (err) {
+      console.warn('[PlacesSearch] Network error:', err);
+      return { success: true, data: FAKE_PLACES_RESULTS };
+    }
   }
 }
 
