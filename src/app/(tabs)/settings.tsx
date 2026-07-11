@@ -185,7 +185,7 @@ export default function SettingsScreen() {
           </Text>
           <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
             <Pressable
-              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              className="px-4 py-3 flex-row items-center active:opacity-70" style={{ borderBottomWidth: 1, borderBottomColor: t.border }}
               accessibilityRole="button"
               accessibilityLabel="Edit Business"
               onPress={() => router.push('/edit-business')}
@@ -204,7 +204,7 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
             </Pressable>
             <Pressable
-              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              className="px-4 py-3 flex-row items-center active:opacity-70" style={{ borderBottomWidth: 1, borderBottomColor: t.border }}
               accessibilityRole="button"
               accessibilityLabel="Account and Security"
               onPress={() => router.push('/edit-profile')}
@@ -388,7 +388,7 @@ export default function SettingsScreen() {
           <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
             {/* Support Row */}
             <Pressable
-              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              className="px-4 py-3 flex-row items-center active:opacity-70" style={{ borderBottomWidth: 1, borderBottomColor: t.border }}
               accessibilityRole="button"
               accessibilityLabel="Contact Support"
               onPress={handleSupportPress}
@@ -408,7 +408,7 @@ export default function SettingsScreen() {
             </Pressable>
             {/* Website Row */}
             <Pressable
-              className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
+              className="px-4 py-3 flex-row items-center active:opacity-70" style={{ borderBottomWidth: 1, borderBottomColor: t.border }}
               accessibilityRole="button"
               accessibilityLabel="Visit Website"
               onPress={handleWebsitePress}
