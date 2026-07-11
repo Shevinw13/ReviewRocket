@@ -79,6 +79,7 @@ export default function SendRequestScreen() {
 
   const phoneValue = watch('phoneNumber');
   const customerNameValue = watch('customerName');
+  const serviceTypeValue = watch('serviceType');
   const isPhoneValid = phoneValue
     ? normalizePhoneNumber(phoneValue).length === 10
     : false;
@@ -475,9 +476,14 @@ export default function SendRequestScreen() {
 
           {/* Job Note Input */}
           <View className="mb-5">
-            <Text className="text-sm font-medium text-navy mb-2">
-              Job Note (optional)
-            </Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-sm font-medium text-navy">
+                Job Note (optional)
+              </Text>
+              <Text className={`text-caption ${(serviceTypeValue?.length ?? 0) >= 70 ? 'text-amber-500' : 'text-navy/40'}`}>
+                {serviceTypeValue?.length ?? 0}/80
+              </Text>
+            </View>
             <View className="flex-row items-center border border-light-gray rounded-xl bg-card-bg px-4">
               <Ionicons name="document-text-outline" size={20} color="#9CA3AF" />
               <Controller

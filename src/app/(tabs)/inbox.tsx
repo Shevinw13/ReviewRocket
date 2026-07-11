@@ -6,7 +6,7 @@
  * Requirements: 6.1, 6.2, 6.6, 6.7
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,13 @@ import {
   RefreshControl,
   Linking,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 
 import { useService } from '@/services';
 import { useUnresolvedCount } from '@/features/inbox/hooks/useUnresolvedCount';
@@ -37,6 +39,7 @@ import { useAllFeedback } from '@/features/inbox/hooks/useAllFeedback';
 type TabFilter = 'needs-attention' | 'all';
 
 const INBOX_LAST_VIEWED_KEY = '@nudgli/inbox_last_viewed';
+const UNDO_TIMEOUT_MS = 3000;
 
 // ─── Inbox Screen ────────────────────────────────────────────────────────────
 
@@ -50,6 +53,9 @@ export default function InboxScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [resolvingIds, setResolvingIds] = useState<Set<string>>(new Set());
   const [lastViewedAt, setLastViewedAt] = useState<Date | null>(null);
+  const [undoItem, setUndoItem] = useState<{ id: string; name: string } | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const undoOpacity = useRef(new Animated.Value(0)).current;
 
   // Load last-viewed timestamp on mount, then update it
   useEffect(() => {
@@ -127,37 +133,71 @@ export default function InboxScreen() {
   }, []);
 
   const handleResolve = useCallback(
-    async (feedbackId: string) => {
+    async (feedbackId: string, customerName?: string) => {
+      // Show undo toast — delay the actual resolve
+      setUndoItem({ id: feedbackId, name: customerName || 'Feedback' });
+
+      // Animate toast in
+      Animated.timing(undoOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+
+      // Optimistically hide the card
       setResolvingIds((prev) => new Set(prev).add(feedbackId));
-      try {
-        const result = await feedbackRepo.markResolved(feedbackId);
-        if (!result.success) {
-          Alert.alert(
-            'Error',
-            'Unable to mark feedback as resolved. Please try again.',
-          );
-          return;
+
+      // Set timer to commit the resolve
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = setTimeout(async () => {
+        // Actually resolve
+        try {
+          const result = await feedbackRepo.markResolved(feedbackId);
+          if (result.success) {
+            hapticSuccess();
+            queryClient.invalidateQueries({ queryKey: ['unresolved-feedback'] });
+            queryClient.invalidateQueries({ queryKey: ['all-feedback'] });
+            queryClient.invalidateQueries({ queryKey: ['unresolved-count'] });
+          }
+        } catch {
+          // If resolve fails, restore the card
+          setResolvingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(feedbackId);
+            return next;
+          });
         }
-        // Invalidate queries to refresh the lists and badge
-        hapticSuccess();
-        queryClient.invalidateQueries({ queryKey: ['unresolved-feedback'] });
-        queryClient.invalidateQueries({ queryKey: ['all-feedback'] });
-        queryClient.invalidateQueries({ queryKey: ['unresolved-count'] });
-      } catch {
-        Alert.alert(
-          'Error',
-          'Unable to mark feedback as resolved. Please try again.',
-        );
-      } finally {
-        setResolvingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(feedbackId);
-          return next;
-        });
-      }
+        // Hide toast
+        Animated.timing(undoOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start(() => setUndoItem(null));
+      }, UNDO_TIMEOUT_MS);
     },
-    [feedbackRepo, queryClient],
+    [feedbackRepo, queryClient, undoOpacity],
   );
+
+  const handleUndo = useCallback(() => {
+    // Cancel the pending resolve
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    if (undoItem) {
+      setResolvingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(undoItem.id);
+        return next;
+      });
+    }
+    // Hide toast
+    Animated.timing(undoOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setUndoItem(null));
+  }, [undoItem, undoOpacity]);
 
   // ─── Render ───────────────────────────────────────────────────────────
 
@@ -244,9 +284,9 @@ export default function InboxScreen() {
             <View className="items-center justify-center py-16">
               <View className="w-16 h-16 rounded-full bg-success-green/10 items-center justify-center mb-4">
                 <Ionicons
-                  name="checkmark-circle"
+                  name={activeTab === 'needs-attention' ? 'checkmark-circle' : 'chatbubble-ellipses-outline'}
                   size={36}
-                  color="#22C55E"
+                  color={activeTab === 'needs-attention' ? '#22C55E' : '#0CBFA6'}
                 />
               </View>
               <Text className="text-body font-bold text-center" style={{ color: t.text }}>
@@ -257,8 +297,19 @@ export default function InboxScreen() {
               <Text className="text-caption text-center mt-2 px-8" style={{ color: t.textMuted }}>
                 {activeTab === 'needs-attention'
                   ? 'No items need your attention right now. Keep up the great work!'
-                  : 'Feedback from customers will appear here once received.'}
+                  : 'Send your first review request and feedback will appear here.'}
               </Text>
+              {activeTab === 'all' && (
+                <Pressable
+                  onPress={() => router.push('/send-request')}
+                  className="mt-5 bg-teal rounded-xl px-6 py-3 flex-row items-center active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Send your first review request"
+                >
+                  <Ionicons name="paper-plane" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text className="text-caption font-bold text-white">Send Review Request</Text>
+                </Pressable>
+              )}
             </View>
           ) : (
             <>
@@ -275,7 +326,7 @@ export default function InboxScreen() {
                   isNew={lastViewedAt ? new Date(item.createdAt) > lastViewedAt : false}
                   onCall={() => handleCall(item.customerPhone, item.customerName)}
                   onText={() => handleText(item.customerPhone, item.customerName)}
-                  onResolve={() => handleResolve(item.id)}
+                  onResolve={() => handleResolve(item.id, item.customerName)}
                   isResolving={resolvingIds.has(item.id)}
                 />
               ))}
@@ -284,6 +335,31 @@ export default function InboxScreen() {
         </ScrollView>
       )}
       </View>
+
+      {/* Undo Resolve Toast */}
+      {undoItem && (
+        <Animated.View
+          style={{ opacity: undoOpacity }}
+          className="absolute bottom-24 left-5 right-5"
+        >
+          <View className="bg-navy rounded-xl px-4 py-3 flex-row items-center justify-between shadow-lg">
+            <View className="flex-row items-center flex-1">
+              <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
+              <Text className="text-caption font-medium text-white ml-2" numberOfLines={1}>
+                Resolved
+              </Text>
+            </View>
+            <Pressable
+              onPress={handleUndo}
+              className="ml-3 px-3 py-1.5 rounded-lg bg-white/15 active:bg-white/25"
+              accessibilityRole="button"
+              accessibilityLabel="Undo resolve"
+            >
+              <Text className="text-caption font-bold text-teal">Undo</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }

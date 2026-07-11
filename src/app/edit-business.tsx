@@ -18,11 +18,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { SuccessIndicator } from '@/components/ui/SuccessIndicator';
 import {
   GoogleReviewLinkPicker,
   type GoogleReviewLinkPickerValue,
 } from '@/features/google-review';
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS } from '@/utils/smsTemplates';
+import { hapticLight } from '@/utils/haptics';
 import type { BusinessType } from '@/types';
 
 // ─── Validation Schema ───────────────────────────────────────────────────────
@@ -57,6 +59,7 @@ export default function EditBusinessScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedBusinessType, setSelectedBusinessType] = useState<BusinessType | undefined>(undefined);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const {
     control,
@@ -125,7 +128,10 @@ export default function EditBusinessScreen() {
       if (result.success) {
         // Invalidate the cached profile so other screens pick up the changes immediately
         queryClient.invalidateQueries({ queryKey: ['business-profile'] });
-        router.navigate('/(tabs)/settings');
+        setShowSuccess(true);
+        setTimeout(() => {
+          router.navigate('/(tabs)/settings');
+        }, 1200);
       } else {
         setErrorMessage(
           result.error.message || 'Failed to save changes. Please try again.',
@@ -169,6 +175,13 @@ export default function EditBusinessScreen() {
 
         {/* White Card Content */}
         <View className="rounded-t-3xl bg-white px-6 pt-8 pb-6 -mt-4">
+          {/* Success Message */}
+          {showSuccess && (
+            <View className="mb-6">
+              <SuccessIndicator visible={true} message="Changes saved!" duration={1000} />
+            </View>
+          )}
+
           {/* Error Message */}
           {errorMessage && (
             <View className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
@@ -241,7 +254,7 @@ export default function EditBusinessScreen() {
             {(['trades', 'restaurant', 'health_beauty', 'professional', 'other'] as BusinessType[]).map((type) => (
               <Pressable
                 key={type}
-                onPress={() => setSelectedBusinessType(type)}
+                onPress={() => { hapticLight(); setSelectedBusinessType(type); }}
                 className={`flex-row items-center rounded-xl border p-3 mb-2 ${
                   selectedBusinessType === type
                     ? 'border-teal bg-teal/5'

@@ -24,6 +24,7 @@ import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { type SubscriptionTier, type BusinessType, TIER_QUOTAS } from '@/types';
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS } from '@/utils/smsTemplates';
+import { hapticLight } from '@/utils/haptics';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -127,6 +128,7 @@ export default function OnboardingScreen() {
   };
 
   const handleSelectBusinessType = async (type: BusinessType) => {
+    hapticLight();
     if (profile?.id) {
       await businessProfileRepo.updateBusinessType(profile.id, type);
       await refetchProfile();

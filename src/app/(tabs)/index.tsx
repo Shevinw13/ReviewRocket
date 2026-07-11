@@ -23,12 +23,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useDashboardMetrics } from '@/features/dashboard/hooks/useDashboardMetrics';
 import { useRecentActivity } from '@/features/dashboard/hooks/useRecentActivity';
+import { useRatingTrend } from '@/features/dashboard/hooks/useRatingTrend';
 import { DashboardMetrics } from '@/features/dashboard/components/DashboardMetrics';
+import { RatingTrendChart } from '@/features/dashboard/components/RatingTrendChart';
 import type { ComparisonPeriod } from '@/features/dashboard/components/DashboardMetrics';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import { useTheme } from '@/theme/ThemeContext';
 import type { DashboardMetrics as DashboardMetricsType, ActivityItem } from '@/types';
+import { TIER_QUOTAS } from '@/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -81,9 +84,20 @@ export default function DashboardScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<ComparisonPeriod>('month');
+  const [quotaWarningDismissed, setQuotaWarningDismissed] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isInitialLoading = profileLoading || metricsLoading || activityLoading;
+
+  // Rating trend data based on selected period
+  const ratingTrend = useRatingTrend(recentActivity, selectedPeriod);
+
+  // Quota warning calculation
+  const tier = profile?.subscriptionTier ?? 'starter';
+  const quota = TIER_QUOTAS[tier];
+  const used = profile?.smsUsedThisPeriod ?? 0;
+  const usagePercent = quota > 0 ? Math.round((used / quota) * 100) : 0;
+  const showQuotaWarning = usagePercent >= 80 && !quotaWarningDismissed;
 
   // ─── Pull-to-Refresh ────────────────────────────────────────────────────
 
@@ -250,6 +264,38 @@ export default function DashboardScreen() {
                 </Pressable>
               )}
 
+              {/* Quota Warning Banner */}
+              {showQuotaWarning && (
+                <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex-row items-start">
+                  <View className="w-9 h-9 rounded-full bg-amber-100 items-center justify-center mr-3">
+                    <Ionicons name="warning-outline" size={18} color="#F59E0B" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-body font-medium" style={{ color: t.text }}>
+                      Running low on messages
+                    </Text>
+                    <Text className="text-caption mt-0.5" style={{ color: t.textMuted }}>
+                      {used}/{quota} used ({usagePercent}%). Upgrade your plan or wait for your billing period to reset.
+                    </Text>
+                    <Pressable
+                      onPress={() => router.push('/subscription')}
+                      className="mt-2 self-start"
+                      accessibilityRole="button"
+                    >
+                      <Text className="text-caption font-bold text-teal">Upgrade Plan →</Text>
+                    </Pressable>
+                  </View>
+                  <Pressable
+                    onPress={() => setQuotaWarningDismissed(true)}
+                    className="p-1 -mt-1 -mr-1"
+                    accessibilityRole="button"
+                    accessibilityLabel="Dismiss quota warning"
+                  >
+                    <Ionicons name="close" size={18} color="#9CA3AF" />
+                  </Pressable>
+                </View>
+              )}
+
               {/* Metrics Section */}
               <DashboardMetrics
                 metrics={displayMetrics}
@@ -257,6 +303,13 @@ export default function DashboardScreen() {
                 weekCount={metrics?.weekCount ?? 0}
                 period={selectedPeriod}
                 onPeriodChange={setSelectedPeriod}
+              />
+
+              {/* Average Rating Trend */}
+              <RatingTrendChart
+                data={ratingTrend.data}
+                period={selectedPeriod}
+                overallAverage={ratingTrend.overallAverage}
               />
 
               {/* CTA Button */}
