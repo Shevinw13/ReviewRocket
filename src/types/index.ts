@@ -7,6 +7,7 @@ export { type Result, type AppError, ErrorCode } from './result';
 
 // Domain models
 export {
+  type BusinessType,
   type SubscriptionTier,
   TIER_QUOTAS,
   type BusinessProfile,

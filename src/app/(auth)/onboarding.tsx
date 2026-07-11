@@ -22,7 +22,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
-import { type SubscriptionTier, TIER_QUOTAS } from '@/types';
+import { type SubscriptionTier, type BusinessType, TIER_QUOTAS } from '@/types';
+import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS } from '@/utils/smsTemplates';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ const PLANS: PlanOption[] = [
 export default function OnboardingScreen() {
   const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showBusinessTypeSelection, setShowBusinessTypeSelection] = useState(false);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
@@ -119,9 +121,18 @@ export default function OnboardingScreen() {
     if (currentIndex < PAGES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
     } else {
-      // Last page — show plan selection
-      setShowPlanSelection(true);
+      // Last page — show business type selection
+      setShowBusinessTypeSelection(true);
     }
+  };
+
+  const handleSelectBusinessType = async (type: BusinessType) => {
+    if (profile?.id) {
+      await businessProfileRepo.updateBusinessType(profile.id, type);
+      await refetchProfile();
+    }
+    setShowBusinessTypeSelection(false);
+    setShowPlanSelection(true);
   };
 
   const handleSelectPlan = async (tier: SubscriptionTier) => {
@@ -137,6 +148,48 @@ export default function OnboardingScreen() {
     await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
     router.replace('/(tabs)');
   };
+
+  // ─── Business Type Selection View ──────────────────────────────────────────
+
+  if (showBusinessTypeSelection) {
+    const BUSINESS_TYPES: BusinessType[] = ['trades', 'restaurant', 'health_beauty', 'professional', 'other'];
+
+    return (
+      <SafeAreaView className="flex-1 bg-card-bg" edges={['top', 'bottom']}>
+        <View className="flex-1 px-5 pt-8">
+          <Text className="text-heading font-bold text-navy text-center mb-2">
+            What type of business?
+          </Text>
+          <Text className="text-body text-navy/60 text-center mb-8">
+            We'll tailor your customer messages to match.
+          </Text>
+
+          {/* Business Type Cards */}
+          {BUSINESS_TYPES.map((type) => (
+            <Pressable
+              key={type}
+              onPress={() => handleSelectBusinessType(type)}
+              className="flex-row items-center rounded-2xl border border-light-gray bg-white p-4 mb-3 active:opacity-80 active:border-teal"
+              accessibilityRole="button"
+              accessibilityLabel={`Select ${BUSINESS_TYPE_LABELS[type]}`}
+            >
+              <View className="w-11 h-11 rounded-full bg-teal/10 items-center justify-center mr-4">
+                <Ionicons
+                  name={BUSINESS_TYPE_ICONS[type] as keyof typeof Ionicons.glyphMap}
+                  size={22}
+                  color="#0CBFA6"
+                />
+              </View>
+              <Text className="text-body font-medium text-navy flex-1">
+                {BUSINESS_TYPE_LABELS[type]}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+            </Pressable>
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // ─── Plan Selection View ──────────────────────────────────────────────────
 

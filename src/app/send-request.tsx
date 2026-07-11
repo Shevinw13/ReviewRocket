@@ -26,6 +26,7 @@ import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { SuccessIndicator } from '@/components/ui/SuccessIndicator';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
+import { generateSmsMessage } from '@/utils/smsTemplates';
 import * as Contacts from 'expo-contacts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -77,9 +78,17 @@ export default function SendRequestScreen() {
   });
 
   const phoneValue = watch('phoneNumber');
+  const customerNameValue = watch('customerName');
   const isPhoneValid = phoneValue
     ? normalizePhoneNumber(phoneValue).length === 10
     : false;
+
+  // Generate live message preview
+  const messagePreview = generateSmsMessage(
+    profile?.businessType,
+    profile?.businessName ?? 'Your Business',
+    customerNameValue || undefined,
+  );
 
   // ─── Phone Auto-formatting ───────────────────────────────────────────────
 
@@ -496,8 +505,28 @@ export default function SendRequestScreen() {
             )}
           </View>
 
+          {/* Message Preview */}
+          <View className="mb-5">
+            <Text className="text-sm font-medium text-navy mb-2">
+              Message Preview
+            </Text>
+            <View className="bg-card-bg border border-light-gray rounded-xl p-4">
+              <View className="flex-row items-start mb-2">
+                <Ionicons name="chatbubble-outline" size={16} color="#0CBFA6" style={{ marginTop: 2 }} />
+                <Text className="text-caption font-medium text-teal ml-2">
+                  What your customer will see:
+                </Text>
+              </View>
+              <View className="bg-white rounded-lg p-3 border border-light-gray/50">
+                <Text className="text-caption text-navy/80 leading-5">
+                  {messagePreview}
+                </Text>
+              </View>
+            </View>
+          </View>
+
           {/* Sender Phone Info */}
-          <View className="flex-row items-center mb-8 px-1">
+          <View className="flex-row items-center mb-4 px-1">
             <Ionicons
               name="information-circle-outline"
               size={18}
@@ -507,36 +536,38 @@ export default function SendRequestScreen() {
               Your customer will receive a text from (855) 597-7335
             </Text>
           </View>
-
-          {/* Send Button */}
-          <Pressable
-            onPress={handleSubmit(onSubmit)}
-            disabled={!isPhoneValid || isSending}
-            className={`rounded-xl py-4 items-center flex-row justify-center ${
-              !isPhoneValid || isSending
-                ? 'bg-teal/40'
-                : 'bg-teal'
-            }`}
-            accessibilityRole="button"
-            accessibilityLabel="Send Text"
-            accessibilityState={{ disabled: !isPhoneValid || isSending }}
-          >
-            {isSending ? (
-              <LoadingIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <Ionicons
-                  name="paper-plane"
-                  size={20}
-                  color="#FFFFFF"
-                  style={{ marginRight: 8 }}
-                />
-                <Text className="text-body font-bold text-white">Send Text</Text>
-              </>
-            )}
-          </Pressable>
         </View>
       </ScrollView>
+
+      {/* Sticky Send Button */}
+      <View className="px-6 pb-8 pt-3 bg-white border-t border-light-gray/50">
+        <Pressable
+          onPress={handleSubmit(onSubmit)}
+          disabled={!isPhoneValid || isSending}
+          className={`rounded-xl py-4 items-center flex-row justify-center ${
+            !isPhoneValid || isSending
+              ? 'bg-teal/40'
+              : 'bg-teal'
+          }`}
+          accessibilityRole="button"
+          accessibilityLabel="Send Text"
+          accessibilityState={{ disabled: !isPhoneValid || isSending }}
+        >
+          {isSending ? (
+            <LoadingIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Ionicons
+                name="paper-plane"
+                size={20}
+                color="#FFFFFF"
+                style={{ marginRight: 8 }}
+              />
+              <Text className="text-body font-bold text-white">Send Text</Text>
+            </>
+          )}
+        </Pressable>
+      </View>
     </KeyboardAvoidingView>
   );
 }

@@ -3,6 +3,9 @@
  * These types represent the core business entities.
  */
 
+/** Business type categories selected during onboarding. */
+export type BusinessType = 'trades' | 'restaurant' | 'health_beauty' | 'professional' | 'other';
+
 /** Subscription tier levels with corresponding SMS quotas. */
 export type SubscriptionTier = 'starter' | 'growth' | 'pro';
 
@@ -20,6 +23,7 @@ export interface BusinessProfile {
   firstName: string;
   lastName: string;
   businessName: string;
+  businessType?: BusinessType;
   email: string;
   googleReviewUrl: string;
   subscriptionTier: SubscriptionTier;

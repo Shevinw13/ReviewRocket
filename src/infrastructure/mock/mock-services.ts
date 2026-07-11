@@ -26,6 +26,7 @@ import type {
   ReviewRequest,
   FeedbackRecord,
   BusinessProfile,
+  BusinessType,
   SubscriptionTier,
   CreateReviewRequestDTO,
   SendSmsParams,
@@ -61,6 +62,7 @@ const FAKE_BUSINESS_PROFILE: BusinessProfile = {
   firstName: 'Alex',
   lastName: 'Mitchell',
   businessName: 'Mitchell Plumbing Co.',
+  businessType: 'trades',
   email: FAKE_EMAIL,
   googleReviewUrl: 'https://google.com/maps/place/mitchell-plumbing',
   subscriptionTier: 'growth',
@@ -364,6 +366,15 @@ class MockBusinessProfileRepository implements IBusinessProfileRepository {
     tier: SubscriptionTier,
   ): Promise<Result<BusinessProfile>> {
     this._profile.subscriptionTier = tier;
+    this._profile.updatedAt = new Date();
+    return { success: true, data: { ...this._profile } };
+  }
+
+  async updateBusinessType(
+    _businessId: string,
+    businessType: BusinessType,
+  ): Promise<Result<BusinessProfile>> {
+    this._profile.businessType = businessType;
     this._profile.updatedAt = new Date();
     return { success: true, data: { ...this._profile } };
   }

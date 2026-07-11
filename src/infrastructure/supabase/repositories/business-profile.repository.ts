@@ -6,7 +6,7 @@
  */
 
 import type { IBusinessProfileRepository } from '@/services/interfaces/database.service';
-import type { Result, BusinessProfile, SubscriptionTier } from '@/types';
+import type { Result, BusinessProfile, BusinessType, SubscriptionTier } from '@/types';
 import { ErrorCode, TIER_QUOTAS } from '@/types';
 import { supabase } from '../client';
 
@@ -17,6 +17,7 @@ interface BusinessOwnerRow {
   first_name: string;
   last_name: string;
   business_name: string;
+  business_type?: string;
   email: string;
   google_review_url: string;
   subscription_tier: SubscriptionTier;
@@ -62,6 +63,7 @@ function mapRowToProfile(row: BusinessOwnerRow): BusinessProfile {
     firstName: row.first_name,
     lastName: row.last_name,
     businessName: row.business_name,
+    businessType: row.business_type as BusinessType | undefined,
     email: row.email,
     googleReviewUrl: row.google_review_url,
     subscriptionTier: row.subscription_tier,
@@ -206,6 +208,49 @@ export class SupabaseBusinessProfileRepository implements IBusinessProfileReposi
         error: {
           code: ErrorCode.NETWORK_ERROR,
           message: err instanceof Error ? err.message : 'An unexpected error occurred updating subscription tier',
+          details: err,
+        },
+      };
+    }
+  }
+
+  /**
+   * Updates the business type for a business profile.
+   * Set once during onboarding; not editable afterwards by the user.
+   */
+  async updateBusinessType(
+    businessId: string,
+    businessType: BusinessType,
+  ): Promise<Result<BusinessProfile>> {
+    try {
+      const { data, error } = await supabase
+        .from('business_owners')
+        .update({ business_type: businessType, updated_at: new Date().toISOString() })
+        .eq('id', businessId)
+        .select('*')
+        .single();
+
+      if (error) {
+        return {
+          success: false,
+          error: {
+            code: mapDbError(error),
+            message: error.message,
+            details: error,
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: mapRowToProfile(data as BusinessOwnerRow),
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: {
+          code: ErrorCode.NETWORK_ERROR,
+          message: err instanceof Error ? err.message : 'An unexpected error occurred updating business type',
           details: err,
         },
       };

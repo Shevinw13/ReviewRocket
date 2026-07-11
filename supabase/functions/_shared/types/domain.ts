@@ -62,6 +62,7 @@ export interface BusinessProfile {
   firstName: string;
   lastName: string;
   businessName: string;
+  business_type?: string;
   email: string;
   googleReviewUrl: string;
   subscriptionTier: SubscriptionTier;

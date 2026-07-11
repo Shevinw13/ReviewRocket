@@ -197,15 +197,9 @@ export default function SettingsScreen() {
                 <Text className="text-body font-semibold" style={{ color: t.text }}>
                   {profile?.businessName ?? '—'}
                 </Text>
-                {profile?.googleReviewUrl ? (
-                  <Text className="text-caption" style={{ color: t.textMuted }} numberOfLines={1}>
-                    {profile.googleReviewUrl.replace(/^https?:\/\//, '').slice(0, 40)}...
-                  </Text>
-                ) : (
-                  <Text className="text-caption text-amber-500">
-                    Google Review link not set
-                  </Text>
-                )}
+                <Text className="text-caption" style={{ color: t.textMuted }}>
+                  Edit business name, type & review link
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
             </Pressable>

@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useService } from '@/services';
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
@@ -21,6 +22,8 @@ import {
   GoogleReviewLinkPicker,
   type GoogleReviewLinkPickerValue,
 } from '@/features/google-review';
+import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS } from '@/utils/smsTemplates';
+import type { BusinessType } from '@/types';
 
 // ─── Validation Schema ───────────────────────────────────────────────────────
 
@@ -48,10 +51,12 @@ type EditBusinessFormData = z.infer<typeof editBusinessSchema>;
  */
 export default function EditBusinessScreen() {
   const businessProfileRepo = useService('businessProfile');
+  const queryClient = useQueryClient();
   const { data: profile } = useBusinessProfile();
 
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedBusinessType, setSelectedBusinessType] = useState<BusinessType | undefined>(undefined);
 
   const {
     control,
@@ -75,6 +80,7 @@ export default function EditBusinessScreen() {
         businessName: profile.businessName ?? '',
         googleReviewUrl: profile.googleReviewUrl ?? '',
       });
+      setSelectedBusinessType(profile.businessType);
     }
   }, [profile, reset]);
 
@@ -109,17 +115,24 @@ export default function EditBusinessScreen() {
         googleReviewUrl: data.googleReviewUrl,
       });
 
+      // Save business type if changed
+      if (result.success && selectedBusinessType && selectedBusinessType !== profile.businessType) {
+        await businessProfileRepo.updateBusinessType(profile.id, selectedBusinessType);
+      }
+
       setIsSaving(false);
 
       if (result.success) {
-        router.back();
+        // Invalidate the cached profile so other screens pick up the changes immediately
+        queryClient.invalidateQueries({ queryKey: ['business-profile'] });
+        router.navigate('/(tabs)/settings');
       } else {
         setErrorMessage(
           result.error.message || 'Failed to save changes. Please try again.',
         );
       }
     },
-    [profile, businessProfileRepo],
+    [profile, businessProfileRepo, selectedBusinessType],
   );
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -138,7 +151,7 @@ export default function EditBusinessScreen() {
         <View className="bg-navy px-6 pt-14 pb-8">
           <View className="flex-row items-center">
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => router.navigate('/(tabs)/settings')}
               className="mr-3 p-1"
               accessibilityRole="button"
               accessibilityLabel="Go back"
@@ -215,6 +228,54 @@ export default function EditBusinessScreen() {
               }
               onBusinessConnected={handleBusinessConnected}
             />
+          </View>
+
+          {/* Business Type Selector */}
+          <View className="mb-8">
+            <Text className="text-sm font-medium text-navy mb-1">
+              Business Type
+            </Text>
+            <Text className="text-caption text-navy/50 mb-3">
+              This tailors the message your customers receive.
+            </Text>
+            {(['trades', 'restaurant', 'health_beauty', 'professional', 'other'] as BusinessType[]).map((type) => (
+              <Pressable
+                key={type}
+                onPress={() => setSelectedBusinessType(type)}
+                className={`flex-row items-center rounded-xl border p-3 mb-2 ${
+                  selectedBusinessType === type
+                    ? 'border-teal bg-teal/5'
+                    : 'border-light-gray bg-card-bg'
+                }`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: selectedBusinessType === type }}
+                accessibilityLabel={BUSINESS_TYPE_LABELS[type]}
+              >
+                <View
+                  className={`w-9 h-9 rounded-full items-center justify-center mr-3 ${
+                    selectedBusinessType === type ? 'bg-teal/15' : 'bg-white'
+                  }`}
+                >
+                  <Ionicons
+                    name={BUSINESS_TYPE_ICONS[type] as keyof typeof Ionicons.glyphMap}
+                    size={18}
+                    color={selectedBusinessType === type ? '#0CBFA6' : '#9CA3AF'}
+                  />
+                </View>
+                <Text
+                  className={`text-sm flex-1 ${
+                    selectedBusinessType === type
+                      ? 'font-medium text-teal'
+                      : 'text-navy'
+                  }`}
+                >
+                  {BUSINESS_TYPE_LABELS[type]}
+                </Text>
+                {selectedBusinessType === type && (
+                  <Ionicons name="checkmark-circle" size={20} color="#0CBFA6" />
+                )}
+              </Pressable>
+            ))}
           </View>
 
           {/* Save Button */}

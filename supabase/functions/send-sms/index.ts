@@ -41,24 +41,32 @@ interface SendSmsResponse {
 }
 
 /**
- * Format the feedback request SMS message per requirements 4.1 and 4.2.
+ * Format the feedback request SMS message based on business type.
  *
- * With customer name:
- *   "Hi [Customer Name], Thank you for choosing [Business Name]. Small businesses
- *    like ours rely on customer feedback to grow and improve. On a scale of 1-5,
- *    how would you rate your experience today? Reply with a number from 1 to 5."
- *
- * Without customer name:
- *   "Thank you for choosing [Business Name]. Small businesses like ours rely on
- *    customer feedback to grow and improve. On a scale of 1-5, how would you rate
- *    your experience today? Reply with a number from 1 to 5."
+ * Each business type gets tailored wording to feel natural for the industry.
+ * Falls back to the generic message if no business type is set.
  */
 export function formatSmsMessage(
   businessName: string,
   customerName?: string,
+  businessType?: string,
 ): string {
   const greeting = customerName ? `Hi ${customerName}, ` : "";
-  return `${greeting}Thank you for choosing ${businessName}. Small businesses like ours rely on customer feedback to grow and improve. On a scale of 1-5, how would you rate your experience today? Reply with a number from 1 to 5.`;
+  const closing = "On a scale of 1-5, how would you rate your experience? Reply with a number from 1 to 5.";
+
+  switch (businessType) {
+    case 'trades':
+      return `${greeting}Thanks for trusting ${businessName} with your recent job. We'd love to know how we did. ${closing}`;
+    case 'restaurant':
+      return `${greeting}Thanks for dining with ${businessName}. We hope you enjoyed your meal! ${closing}`;
+    case 'health_beauty':
+      return `${greeting}Thanks for your recent visit to ${businessName}. We hope you left feeling great! ${closing}`;
+    case 'professional':
+      return `${greeting}Thanks for choosing ${businessName} for your recent appointment. Your feedback helps us improve. ${closing}`;
+    case 'other':
+    default:
+      return `${greeting}Thank you for choosing ${businessName}. Small businesses like ours rely on customer feedback to grow and improve. ${closing}`;
+  }
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -228,7 +236,7 @@ serve(async (req: Request): Promise<Response> => {
   const encryptedName = customerName ? await encrypt(customerName) : null;
 
   // 9. Format the SMS message
-  const smsBody = formatSmsMessage(profile.businessName, customerName);
+  const smsBody = formatSmsMessage(profile.businessName, customerName, profile.business_type);
 
   // 10. Send via Twilio adapter
   const smsPayload: SendSmsPayload = {

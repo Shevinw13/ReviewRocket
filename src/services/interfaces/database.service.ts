@@ -9,6 +9,7 @@ import type {
   ReviewRequest,
   FeedbackRecord,
   BusinessProfile,
+  BusinessType,
   SubscriptionTier,
   CreateReviewRequestDTO,
   CreateFeedbackDTO,
@@ -44,6 +45,10 @@ export interface IBusinessProfileRepository {
   update(
     businessId: string,
     data: Partial<Pick<BusinessProfile, 'firstName' | 'lastName' | 'businessName' | 'googleReviewUrl'>>,
+  ): Promise<Result<BusinessProfile>>;
+  updateBusinessType(
+    businessId: string,
+    businessType: BusinessType,
   ): Promise<Result<BusinessProfile>>;
   updateSubscriptionTier(
     businessId: string,

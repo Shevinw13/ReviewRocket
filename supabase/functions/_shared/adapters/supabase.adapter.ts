@@ -708,6 +708,7 @@ function mapBusinessProfile(row: Record<string, unknown>): BusinessProfile {
     firstName: row.first_name as string,
     lastName: row.last_name as string,
     businessName: row.business_name as string,
+    business_type: (row.business_type as string) || undefined,
     email: row.email as string,
     googleReviewUrl: row.google_review_url as string,
     subscriptionTier: row.subscription_tier as BusinessProfile["subscriptionTier"],
