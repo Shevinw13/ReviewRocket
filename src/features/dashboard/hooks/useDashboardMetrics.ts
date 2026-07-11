@@ -70,17 +70,35 @@ export function useDashboardMetrics() {
         };
       }
 
-      // In mock mode, return pre-computed metrics
+      // In mock mode, compute metrics from mock data for consistency
       if (IS_MOCK_MODE) {
+        const { getMockActivityFeed } = require('@/infrastructure/mock/mock-services');
+        const activityFeed: { type: string; rating?: number; createdAt: Date }[] = getMockActivityFeed();
+
+        const now = new Date();
+        const { currentMonthStart } = getMonthBoundaries();
+        const { currentWeekStart } = getWeekBoundaries();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        const allRatings = activityFeed.filter((item: any) => item.type === 'rating' && item.rating != null);
+        const monthRatings = allRatings.filter((item: any) => new Date(item.createdAt) >= currentMonthStart);
+        const weekRatings = allRatings.filter((item: any) => new Date(item.createdAt) >= currentWeekStart);
+        const dayRatings = allRatings.filter((item: any) => new Date(item.createdAt) >= startOfDay);
+
+        const monthPositive = monthRatings.filter((item: any) => item.rating >= 4).length;
+        const monthNeedsAttention = monthRatings.filter((item: any) => item.rating <= 3).length;
+        const monthTotal = monthRatings.length;
+        const weekTotal = weekRatings.length;
+
         return {
-          reviewOpportunities: 47,
+          reviewOpportunities: monthTotal,
           monthOverMonthChange: 24,
-          positiveResponses: 34,
-          needsAttention: 6,
-          requestsSent: 47,
-          responseRate: 85,
+          positiveResponses: monthPositive,
+          needsAttention: monthNeedsAttention,
+          requestsSent: monthTotal,
+          responseRate: monthTotal > 0 ? Math.round((monthPositive / monthTotal) * 100) : null,
           weekOverWeekChange: 12,
-          weekCount: 14,
+          weekCount: weekTotal,
         };
       }
 
