@@ -27,6 +27,7 @@ import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { SuccessIndicator } from '@/components/ui/SuccessIndicator';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { generateSmsMessage } from '@/utils/smsTemplates';
+import { useTheme } from '@/theme/ThemeContext';
 import * as Contacts from 'expo-contacts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ interface SuccessState {
 export default function SendRequestScreen() {
   const smsService = useService('sms');
   const { data: profile } = useBusinessProfile();
+  const { colors: t } = useTheme();
   const businessId = profile?.id;
 
   const [isSending, setIsSending] = useState(false);
@@ -304,7 +306,8 @@ export default function SendRequestScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-white"
+      className="flex-1"
+      style={{ backgroundColor: t.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -332,13 +335,13 @@ export default function SendRequestScreen() {
           </Text>
         </View>
 
-        {/* White Card Content - rounds into navy, fills downward */}
-        <View className="rounded-t-3xl bg-white px-6 pt-8 pb-6 -mt-4">
+        {/* Card Content */}
+        <View className="rounded-t-3xl px-6 pt-8 pb-6 -mt-4" style={{ backgroundColor: t.bg }}>
           {/* How it works hint (shown when form is empty) */}
           {!successState && !errorMessage && !phoneValue && (
             <View className="bg-teal/5 border border-teal/20 rounded-xl p-3 mb-5 flex-row items-start">
               <Ionicons name="information-circle-outline" size={18} color="#0CBFA6" style={{ marginTop: 1 }} />
-              <Text className="text-caption text-navy/70 ml-2 flex-1">
+              <Text className="text-caption navy/70 ml-2 flex-1">
                 Your customer will receive a text asking them to rate their experience 1-5. Happy customers get your Google review link. Unhappy ones come directly to you.
               </Text>
             </View>
@@ -395,17 +398,17 @@ export default function SendRequestScreen() {
 
           {/* Customer Name Input */}
           <View className="mb-5">
-            <Text className="text-sm font-medium text-navy mb-2">
+            <Text className="text-sm font-medium mb-2" style={{ color: t.text }}>
               Customer Name (optional)
             </Text>
-            <View className="flex-row items-center border border-light-gray rounded-xl bg-card-bg px-4">
+            <View className="flex-row items-center rounded-xl px-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
               <Ionicons name="person-outline" size={20} color="#9CA3AF" />
               <Controller
                 control={control}
                 name="customerName"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    className="flex-1 ml-3 py-4 text-body text-navy"
+                    className="flex-1 ml-3 py-4 text-body" style={{ color: t.text }}
                     placeholder="Jane Smith"
                     placeholderTextColor="#9CA3AF"
                     onBlur={onBlur}
@@ -428,7 +431,7 @@ export default function SendRequestScreen() {
           {/* Phone Number Input */}
           <View className="mb-5">
             <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-sm font-medium text-navy">
+              <Text className="text-sm font-medium" style={{ color: t.text }}>
                 Phone Number
               </Text>
               <Pressable
@@ -444,9 +447,12 @@ export default function SendRequestScreen() {
               </Pressable>
             </View>
             <View
-              className={`flex-row items-center border rounded-xl bg-card-bg px-4 ${
-                errors.phoneNumber ? 'border-red-500' : 'border-light-gray'
-              }`}
+              className="flex-row items-center rounded-xl px-4"
+              style={{
+                backgroundColor: t.cardBg,
+                borderWidth: 1,
+                borderColor: errors.phoneNumber ? '#EF4444' : t.border,
+              }}
             >
               <Ionicons name="call-outline" size={20} color="#9CA3AF" />
               <Controller
@@ -454,7 +460,7 @@ export default function SendRequestScreen() {
                 name="phoneNumber"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    className="flex-1 ml-3 py-4 text-body text-navy"
+                    className="flex-1 ml-3 py-4 text-body" style={{ color: t.text }}
                     placeholder="(555) 123-4567"
                     placeholderTextColor="#9CA3AF"
                     onBlur={onBlur}
@@ -477,21 +483,21 @@ export default function SendRequestScreen() {
           {/* Job Note Input */}
           <View className="mb-5">
             <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-sm font-medium text-navy">
+              <Text className="text-sm font-medium" style={{ color: t.text }}>
                 Job Note (optional)
               </Text>
               <Text className={`text-caption ${(serviceTypeValue?.length ?? 0) >= 70 ? 'text-amber-500' : 'text-navy/40'}`}>
                 {serviceTypeValue?.length ?? 0}/80
               </Text>
             </View>
-            <View className="flex-row items-center border border-light-gray rounded-xl bg-card-bg px-4">
+            <View className="flex-row items-center rounded-xl px-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
               <Ionicons name="document-text-outline" size={20} color="#9CA3AF" />
               <Controller
                 control={control}
                 name="serviceType"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    className="flex-1 ml-3 py-4 text-body text-navy"
+                    className="flex-1 ml-3 py-4 text-body" style={{ color: t.text }}
                     placeholder="e.g. Kitchen faucet, 123 Oak St"
                     placeholderTextColor="#9CA3AF"
                     onBlur={onBlur}
@@ -513,18 +519,18 @@ export default function SendRequestScreen() {
 
           {/* Message Preview */}
           <View className="mb-5">
-            <Text className="text-sm font-medium text-navy mb-2">
+            <Text className="text-sm font-medium mb-2" style={{ color: t.text }}>
               Message Preview
             </Text>
-            <View className="bg-card-bg border border-light-gray rounded-xl p-4">
+            <View className="rounded-xl p-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
               <View className="flex-row items-start mb-2">
                 <Ionicons name="chatbubble-outline" size={16} color="#0CBFA6" style={{ marginTop: 2 }} />
                 <Text className="text-caption font-medium text-teal ml-2">
                   What your customer will see:
                 </Text>
               </View>
-              <View className="bg-white rounded-lg p-3 border border-light-gray/50">
-                <Text className="text-caption text-navy/80 leading-5">
+              <View className="rounded-lg p-3" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
+                <Text className="text-caption leading-5" style={{ color: t.textSecondary }}>
                   {messagePreview}
                 </Text>
               </View>
@@ -538,7 +544,7 @@ export default function SendRequestScreen() {
               size={18}
               color="#6B7280"
             />
-            <Text className="text-caption text-navy/60 ml-2">
+            <Text className="text-caption ml-2" style={{ color: t.textMuted }}>
               Your customer will receive a text from (855) 597-7335
             </Text>
           </View>
@@ -546,7 +552,7 @@ export default function SendRequestScreen() {
       </ScrollView>
 
       {/* Sticky Send Button */}
-      <View className="px-6 pb-8 pt-3 bg-white border-t border-light-gray/50">
+      <View className="px-6 pb-8 pt-3" style={{ backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.border }}>
         <Pressable
           onPress={handleSubmit(onSubmit)}
           disabled={!isPhoneValid || isSending}
