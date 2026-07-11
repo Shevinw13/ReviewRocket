@@ -206,17 +206,17 @@ export default function SettingsScreen() {
             <Pressable
               className="px-4 py-3 border-b border-light-gray flex-row items-center active:opacity-70"
               accessibilityRole="button"
-              accessibilityLabel="Edit User Profile"
+              accessibilityLabel="Account and Security"
               onPress={() => router.push('/edit-profile')}
             >
               <View className="w-10 h-10 rounded-full bg-card-bg items-center justify-center mr-3">
-                <Ionicons name="person-outline" size={20} color="#0B1D3A" />
+                <Ionicons name="shield-outline" size={20} color="#0B1D3A" />
               </View>
               <View className="flex-1">
                 <Text className="text-body font-medium" style={{ color: t.text }}>
                   {profile ? `${profile.firstName} ${profile.lastName}` : '—'}
                 </Text>
-                <Text className="text-caption" style={{ color: t.textMuted }}>User Profile</Text>
+                <Text className="text-caption" style={{ color: t.textMuted }}>Account & Security</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#0B1D3A" style={{ opacity: 0.4 }} />
             </Pressable>
