@@ -341,7 +341,7 @@ export default function SendRequestScreen() {
           {!successState && !errorMessage && !phoneValue && (
             <View className="bg-teal/5 border border-teal/20 rounded-xl p-3 mb-5 flex-row items-start">
               <Ionicons name="information-circle-outline" size={18} color="#0CBFA6" style={{ marginTop: 1 }} />
-              <Text className="text-caption navy/70 ml-2 flex-1">
+              <Text className="text-caption ml-2 flex-1" style={{ color: t.textSecondary }}>
                 Your customer will receive a text asking them to rate their experience 1-5. Happy customers get your Google review link. Unhappy ones come directly to you.
               </Text>
             </View>
