@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, Linking, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -109,6 +109,33 @@ export default function SubscriptionScreen() {
           isPurchasing={isPurchasing}
           purchasingTier={purchasingTier}
         />
+
+        {/* Manage Subscription Button */}
+        <Pressable
+          onPress={() => {
+            if (Platform.OS === 'ios') {
+              Linking.openURL('https://apps.apple.com/account/subscriptions');
+            } else {
+              Alert.alert(
+                'Manage Subscription',
+                'Subscription management is available through the Apple App Store on iOS.',
+              );
+            }
+          }}
+          className="mt-2 mb-6 rounded-2xl border border-light-gray bg-white py-4 px-5 active:opacity-70"
+          accessibilityRole="button"
+          accessibilityLabel="Cancel or manage subscription in App Store"
+        >
+          <View className="flex-row items-center justify-center mb-1">
+            <Ionicons name="settings-outline" size={18} color="#0B1D3A" style={{ marginRight: 8 }} />
+            <Text className="text-body font-medium text-navy">
+              Cancel or Change Plan
+            </Text>
+          </View>
+          <Text className="text-caption text-navy/50 text-center">
+            Opens Apple subscription settings
+          </Text>
+        </Pressable>
 
         {/* Footer info */}
         <View className="mt-4 px-2">

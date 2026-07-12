@@ -128,8 +128,9 @@ export default function DashboardScreen() {
   const displayMetrics = metrics ?? EMPTY_METRICS;
   const activity = recentActivity ?? [];
 
-  // Filter activity by selected period
+  // Filter activity by selected period and exclude opt-in events (not useful for business owners)
   const filteredActivity = activity.filter((item) => {
+    if (item.type === 'sms_opt_in') return false;
     const itemDate = new Date(item.createdAt);
     const now = new Date();
     if (selectedPeriod === 'day') {
@@ -374,22 +375,32 @@ export default function DashboardScreen() {
                         {/* Icon / Avatar based on type */}
                         {item.type === 'rating' && item.rating != null && item.rating >= 4 && (
                           <View className="w-9 h-9 rounded-full bg-success-green/10 items-center justify-center mr-3">
-                            <Ionicons name="star" size={18} color="#22C55E" />
+                            <Ionicons name="thumbs-up" size={16} color="#22C55E" />
                           </View>
                         )}
-                        {item.type === 'rating' && (item.rating == null || item.rating < 4) && (
-                          <View className="w-9 h-9 rounded-full bg-card-bg items-center justify-center mr-3">
+                        {item.type === 'rating' && item.rating != null && item.rating === 3 && (
+                          <View className="w-9 h-9 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#F3F4F6' }}>
+                            <Ionicons name="remove-circle-outline" size={18} color="#6B7280" />
+                          </View>
+                        )}
+                        {item.type === 'rating' && (item.rating != null && item.rating <= 2) && (
+                          <View className="w-9 h-9 rounded-full bg-amber-100 items-center justify-center mr-3">
+                            <Ionicons name="thumbs-down" size={16} color="#F97316" />
+                          </View>
+                        )}
+                        {item.type === 'rating' && item.rating == null && (
+                          <View className="w-9 h-9 rounded-full items-center justify-center mr-3" style={{ backgroundColor: '#F3F4F6' }}>
                             <Ionicons name="person" size={18} color="#9CA3AF" />
                           </View>
                         )}
                         {item.type === 'sms_opt_out' && (
-                          <View className="w-9 h-9 rounded-full bg-teal/10 items-center justify-center mr-3">
-                            <Ionicons name="information-circle" size={20} color="#0CBFA6" />
+                          <View className="w-9 h-9 rounded-full bg-red-50 items-center justify-center mr-3">
+                            <Ionicons name="notifications-off-outline" size={18} color="#EF4444" />
                           </View>
                         )}
                         {item.type === 'sms_opt_in' && (
                           <View className="w-9 h-9 rounded-full bg-green-50 items-center justify-center mr-3">
-                            <Ionicons name="checkmark-circle-outline" size={20} color="#22C55E" />
+                            <Ionicons name="notifications-outline" size={18} color="#22C55E" />
                           </View>
                         )}
 
@@ -408,14 +419,24 @@ export default function DashboardScreen() {
                             </>
                           )}
                           {item.type === 'sms_opt_out' && (
-                            <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={2}>
-                              {item.customerName || item.customerPhoneFormatted || 'A customer'} opted out of SMS messaging
-                            </Text>
+                            <View className="flex-row items-center">
+                              <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={1}>
+                                {item.customerName || item.customerPhoneFormatted || 'Customer'}
+                              </Text>
+                              <View className="ml-2 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                                <Text className="text-[11px] font-semibold text-red-500">Opted out of texts</Text>
+                              </View>
+                            </View>
                           )}
                           {item.type === 'sms_opt_in' && (
-                            <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={2}>
-                              {item.customerName || item.customerPhoneFormatted || 'A customer'} opted back in to SMS messaging
-                            </Text>
+                            <View className="flex-row items-center">
+                              <Text className="text-body font-medium" style={{ color: t.text }} numberOfLines={1}>
+                                {item.customerName || item.customerPhoneFormatted || 'Customer'}
+                              </Text>
+                              <View className="ml-2 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                                <Text className="text-[11px] font-semibold text-green-600">Receiving texts</Text>
+                              </View>
+                            </View>
                           )}
                         </View>
 

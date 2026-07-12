@@ -28,11 +28,20 @@ export interface SubscriptionTierPickerProps {
   purchasingTier?: SubscriptionTier | null;
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const TIER_ORDER: Record<SubscriptionTier, number> = {
+  starter: 0,
+  growth: 1,
+  pro: 2,
+};
+
 // ─── Tier Card Component ─────────────────────────────────────────────────────
 
 interface TierCardProps {
   tierInfo: TierInfo;
   isCurrent: boolean;
+  isUpgrade: boolean;
   onSelect: () => void;
   isPurchasing: boolean;
   isThisTierPurchasing: boolean;
@@ -41,11 +50,13 @@ interface TierCardProps {
 function TierCard({
   tierInfo,
   isCurrent,
+  isUpgrade,
   onSelect,
   isPurchasing,
   isThisTierPurchasing,
 }: TierCardProps) {
   const { name, price, smsLimit } = tierInfo;
+  const actionLabel = isUpgrade ? 'Upgrade' : 'Downgrade';
 
   return (
     <View
@@ -112,13 +123,13 @@ function TierCard({
             isPurchasing ? 'bg-teal/50' : 'bg-teal active:bg-teal/80'
           }`}
           accessibilityRole="button"
-          accessibilityLabel={`Subscribe to ${name} plan`}
+          accessibilityLabel={`${actionLabel} to ${name} plan`}
           accessibilityState={{ disabled: isPurchasing }}
         >
           {isThisTierPurchasing ? (
             <LoadingIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text className="text-caption font-bold text-white">Subscribe</Text>
+            <Text className="text-caption font-bold text-white">{actionLabel}</Text>
           )}
         </Pressable>
       )}
@@ -141,6 +152,7 @@ export function SubscriptionTierPicker({
           key={tierInfo.tier}
           tierInfo={tierInfo}
           isCurrent={tierInfo.tier === currentTier}
+          isUpgrade={TIER_ORDER[tierInfo.tier] > TIER_ORDER[currentTier]}
           onSelect={() => onSelectTier(tierInfo.tier)}
           isPurchasing={isPurchasing}
           isThisTierPurchasing={purchasingTier === tierInfo.tier}
