@@ -10,7 +10,14 @@ const fs = require('fs');
 const https = require('https');
 const http = require('http');
 
-const API_KEY = 'AIzaSyDmXv6PhADtEDQaRYEmKU2AUTVeClEzfuY';
+// Load API key from .env
+const envContent = fs.readFileSync('.env', 'utf8');
+const apiKeyMatch = envContent.match(/GOOGLE_PLACES_API_KEY=(.+)/);
+if (!apiKeyMatch) {
+  console.error('ERROR: GOOGLE_PLACES_API_KEY not found in .env');
+  process.exit(1);
+}
+const API_KEY = apiKeyMatch[1].trim();
 const MAX_RESULTS = 200;
 
 // Georgia cities to search
