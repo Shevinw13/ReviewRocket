@@ -31,9 +31,8 @@ export function useRatingTrend(
     if (period === 'day') {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     } else if (period === 'week') {
-      const dayOfWeek = now.getDay();
       startDate = new Date(now);
-      startDate.setDate(now.getDate() - dayOfWeek);
+      startDate.setDate(now.getDate() - 6);
       startDate.setHours(0, 0, 0, 0);
     } else {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);

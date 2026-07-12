@@ -98,13 +98,13 @@ export function RatingTrendChart({ data, period, overallAverage }: RatingTrendCh
     <View className="rounded-2xl p-4 mt-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
       {/* Header row */}
       <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
+        <View className="flex-row items-center flex-1">
           <Ionicons name="star" size={16} color="#F59E0B" />
           <Text className="text-caption font-semibold ml-2" style={{ color: t.text }}>
             Avg Rating
           </Text>
           <Text className="text-caption ml-2" style={{ color: t.textMuted }}>
-            · {totalRatings} rating{totalRatings !== 1 ? 's' : ''} {periodLabel}
+            · {totalRatings} rating{totalRatings !== 1 ? 's' : ''} {periodLabel}{totalRatings > MAX_BARS ? ` · latest ${MAX_BARS} shown` : ''}
           </Text>
         </View>
         <Text className="text-xl font-bold" style={{ color: getBarColor(overallAverage) }}>
@@ -154,11 +154,6 @@ export function RatingTrendChart({ data, period, overallAverage }: RatingTrendCh
       </View>
 
       {/* Footer */}
-      {bars.length < totalRatings && (
-        <Text className="text-[10px] mt-1.5" style={{ color: t.textMuted }}>
-          Showing latest {bars.length}
-        </Text>
-      )}
     </View>
   );
 }

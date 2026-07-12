@@ -79,70 +79,77 @@ function generateFakeActivityFeed(): ActivityItem[] {
       type: 'rating',
       customerName: 'James Mitchell',
       rating: 5,
-      createdAt: new Date(Date.now() - 25 * 60 * 1000), // 25 min ago
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
     },
     {
       id: 'act-002',
       type: 'rating',
       customerName: 'Rachel Kim',
       rating: 5,
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
     },
     {
       id: 'act-003',
       type: 'rating',
       customerName: 'David Chen',
       rating: 4,
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
     },
     {
       id: 'act-004',
-      type: 'sms_opt_out',
-      customerName: 'Mark Johnson',
-      customerPhoneFormatted: '(555) 234-8901',
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-    },
-    {
-      id: 'act-005',
       type: 'rating',
       customerName: 'Sarah Williams',
       rating: 5,
       createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
     },
     {
-      id: 'act-006',
+      id: 'act-005',
       type: 'rating',
       customerName: 'Tom Henderson',
       rating: 2,
-      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+      createdAt: new Date(Date.now() - 20 * 60 * 60 * 1000), // 20 hours ago
+    },
+    {
+      id: 'act-006',
+      type: 'rating',
+      customerName: 'Laura Martinez',
+      rating: 5,
+      createdAt: new Date(Date.now() - 28 * 60 * 60 * 1000), // 28 hours ago
     },
     {
       id: 'act-007',
       type: 'rating',
-      customerName: 'Laura Martinez',
-      rating: 5,
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      customerName: 'Nicole Foster',
+      rating: 4,
+      createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000), // 36 hours ago
     },
     {
       id: 'act-008',
-      type: 'sms_opt_in',
+      type: 'rating',
       customerName: 'Chris Taylor',
-      customerPhoneFormatted: '(555) 876-5432',
-      createdAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000), // 1.5 days ago
+      rating: 5,
+      createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
     },
     {
       id: 'act-009',
       type: 'rating',
-      customerName: 'Nicole Foster',
-      rating: 4,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      customerName: 'Brian O\'Connor',
+      rating: 3,
+      createdAt: new Date(Date.now() - 72 * 60 * 60 * 1000), // 3 days ago
     },
     {
       id: 'act-010',
       type: 'rating',
-      customerName: 'Brian O\'Connor',
-      rating: 3,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      customerName: 'Jessica Park',
+      rating: 5,
+      createdAt: new Date(Date.now() - 96 * 60 * 60 * 1000), // 4 days ago
+    },
+    {
+      id: 'act-011',
+      type: 'rating',
+      customerName: 'Andrew Walsh',
+      rating: 4,
+      createdAt: new Date(Date.now() - 100 * 60 * 60 * 1000), // ~4 days ago
     },
   ];
 }

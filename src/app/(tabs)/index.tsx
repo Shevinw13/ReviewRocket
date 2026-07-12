@@ -14,11 +14,13 @@ import {
   RefreshControl,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Clipboard from 'expo-clipboard';
 
 import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useDashboardMetrics } from '@/features/dashboard/hooks/useDashboardMetrics';
@@ -85,6 +87,7 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<ComparisonPeriod>('month');
   const [quotaWarningDismissed, setQuotaWarningDismissed] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isInitialLoading = profileLoading || metricsLoading || activityLoading;
@@ -123,6 +126,21 @@ export default function DashboardScreen() {
     }
   }, [queryClient]);
 
+  // ─── Copy Google Review Link ────────────────────────────────────────────
+
+  const handleCopyReviewLink = useCallback(async () => {
+    if (!profile?.googleReviewUrl) {
+      Alert.alert(
+        'No Review Link',
+        'Add your Google Review link in Edit Business to use this feature.',
+      );
+      return;
+    }
+    await Clipboard.setStringAsync(profile.googleReviewUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }, [profile]);
+
   // ─── Render ─────────────────────────────────────────────────────────────
 
   const displayMetrics = metrics ?? EMPTY_METRICS;
@@ -138,9 +156,8 @@ export default function DashboardScreen() {
       return itemDate >= startOfDay;
     }
     if (selectedPeriod === 'week') {
-      const dayOfWeek = now.getDay();
       const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - dayOfWeek);
+      startOfWeek.setDate(now.getDate() - 6);
       startOfWeek.setHours(0, 0, 0, 0);
       return itemDate >= startOfWeek;
     }
@@ -204,18 +221,33 @@ export default function DashboardScreen() {
                 {profile?.businessName ?? 'Dashboard'}
               </Text>
             </View>
-            <View className="h-10 w-10 rounded-full overflow-hidden">
+            <Pressable
+              onPress={handleCopyReviewLink}
+              className="h-10 w-10 rounded-full overflow-hidden active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Copy Google review link"
+            >
               <Image
                 source={require("../../../assets/applogo.png")}
                 className="h-10 w-10"
                 resizeMode="cover"
               />
-            </View>
+            </Pressable>
           </View>
         </View>
 
         {/* Content area overlapping the navy */}
         <View className="px-5 -mt-4">
+
+          {/* Link Copied Toast */}
+          {linkCopied && (
+            <View className="absolute top-0 left-8 right-8 z-10 bg-navy rounded-xl px-4 py-2.5 flex-row items-center justify-center shadow-lg" style={{ top: -18 }}>
+              <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+              <Text className="text-caption font-medium text-white ml-2">
+                Google review link copied!
+              </Text>
+            </View>
+          )}
           {!hasData ? (
             /* Empty State — Welcome Card */
             <View className="rounded-2xl p-6 items-center shadow-sm shadow-black/5" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
@@ -302,6 +334,14 @@ export default function DashboardScreen() {
                 metrics={displayMetrics}
                 weekOverWeekChange={metrics?.weekOverWeekChange ?? null}
                 weekCount={metrics?.weekCount ?? 0}
+                dayCount={metrics?.dayCount ?? 0}
+                dayOverDayChange={metrics?.dayOverDayChange ?? null}
+                weekPositive={metrics?.weekPositive ?? 0}
+                weekNeedsAttention={metrics?.weekNeedsAttention ?? 0}
+                weekResponseRate={metrics?.weekResponseRate ?? null}
+                dayPositive={metrics?.dayPositive ?? 0}
+                dayNeedsAttention={metrics?.dayNeedsAttention ?? 0}
+                dayResponseRate={metrics?.dayResponseRate ?? null}
                 period={selectedPeriod}
                 onPeriodChange={setSelectedPeriod}
               />

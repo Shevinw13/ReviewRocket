@@ -21,7 +21,7 @@ export function calculateMonthOverMonth(
 export function sortAndLimitActivity(items: ActivityItem[]): ActivityItem[] {
   return [...items]
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    .slice(0, 10);
+    .slice(0, 20);
 }
 
 /**

@@ -212,6 +212,11 @@ export default function HistoryScreen() {
                           {status.text}
                         </Text>
                       )}
+                      {request.serviceType && (
+                        <Text className="text-caption ml-2" style={{ color: t.textMuted }} numberOfLines={1}>
+                          · {request.serviceType}
+                        </Text>
+                      )}
                     </View>
                   </View>
 

@@ -22,6 +22,15 @@ const IS_MOCK_MODE =
 export interface DashboardMetricsWithWeek extends DashboardMetrics {
   weekOverWeekChange: number | null;
   weekCount: number;
+  dayCount: number;
+  dayOverDayChange: number | null;
+  // Per-period breakdowns
+  weekPositive: number;
+  weekNeedsAttention: number;
+  weekResponseRate: number | null;
+  dayPositive: number;
+  dayNeedsAttention: number;
+  dayResponseRate: number | null;
 }
 
 function getMonthBoundaries() {
@@ -34,9 +43,9 @@ function getMonthBoundaries() {
 
 function getWeekBoundaries() {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0 = Sunday
+  // "This week" = last 7 days (rolling window, more useful than calendar week)
   const currentWeekStart = new Date(now);
-  currentWeekStart.setDate(now.getDate() - dayOfWeek);
+  currentWeekStart.setDate(now.getDate() - 6);
   currentWeekStart.setHours(0, 0, 0, 0);
 
   const prevWeekStart = new Date(currentWeekStart);
@@ -70,35 +79,28 @@ export function useDashboardMetrics() {
         };
       }
 
-      // In mock mode, compute metrics from mock data for consistency
+      // In mock mode, return fixed marketing-ready metrics
       if (IS_MOCK_MODE) {
-        const { getMockActivityFeed } = require('@/infrastructure/mock/mock-services');
-        const activityFeed: { type: string; rating?: number; createdAt: Date }[] = getMockActivityFeed();
-
-        const now = new Date();
-        const { currentMonthStart } = getMonthBoundaries();
-        const { currentWeekStart } = getWeekBoundaries();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-        const allRatings = activityFeed.filter((item: any) => item.type === 'rating' && item.rating != null);
-        const monthRatings = allRatings.filter((item: any) => new Date(item.createdAt) >= currentMonthStart);
-        const weekRatings = allRatings.filter((item: any) => new Date(item.createdAt) >= currentWeekStart);
-        const dayRatings = allRatings.filter((item: any) => new Date(item.createdAt) >= startOfDay);
-
-        const monthPositive = monthRatings.filter((item: any) => item.rating >= 4).length;
-        const monthNeedsAttention = monthRatings.filter((item: any) => item.rating <= 3).length;
-        const monthTotal = monthRatings.length;
-        const weekTotal = weekRatings.length;
-
         return {
-          reviewOpportunities: monthTotal,
-          monthOverMonthChange: 24,
-          positiveResponses: monthPositive,
-          needsAttention: monthNeedsAttention,
-          requestsSent: monthTotal,
-          responseRate: monthTotal > 0 ? Math.round((monthPositive / monthTotal) * 100) : null,
-          weekOverWeekChange: 12,
-          weekCount: weekTotal,
+          // Month
+          reviewOpportunities: 12,
+          monthOverMonthChange: 18,
+          positiveResponses: 9,
+          needsAttention: 2,
+          requestsSent: 12,
+          responseRate: 92,
+          // Week
+          weekOverWeekChange: 25,
+          weekCount: 12,
+          weekPositive: 9,
+          weekNeedsAttention: 2,
+          weekResponseRate: 92,
+          // Day
+          dayCount: 5,
+          dayOverDayChange: null,
+          dayPositive: 4,
+          dayNeedsAttention: 1,
+          dayResponseRate: 83,
         };
       }
 

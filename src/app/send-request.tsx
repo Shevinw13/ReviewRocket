@@ -331,21 +331,12 @@ export default function SendRequestScreen() {
             </Text>
           </View>
           <Text className="text-sm text-white/60 mt-2 ml-10">
-            Send a friendly text asking your customer for a 1-5 rating
+            Enter your customer's details below
           </Text>
         </View>
 
         {/* Card Content */}
         <View className="rounded-t-3xl px-6 pt-8 pb-6 -mt-4" style={{ backgroundColor: t.bg }}>
-          {/* How it works hint (shown when form is empty) */}
-          {!successState && !errorMessage && !phoneValue && (
-            <View className="bg-teal/5 border border-teal/20 rounded-xl p-3 mb-5 flex-row items-start">
-              <Ionicons name="information-circle-outline" size={18} color="#0CBFA6" style={{ marginTop: 1 }} />
-              <Text className="text-caption ml-2 flex-1" style={{ color: t.textSecondary }}>
-                Your customer will receive a text asking them to rate their experience 1-5. Happy customers get your Google review link. Unhappy ones come directly to you.
-              </Text>
-            </View>
-          )}
 
           {/* Success State */}
           {successState && (
@@ -519,9 +510,6 @@ export default function SendRequestScreen() {
 
           {/* Message Preview */}
           <View className="mb-5">
-            <Text className="text-sm font-medium mb-2" style={{ color: t.text }}>
-              Message Preview
-            </Text>
             <View className="rounded-xl p-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
               <View className="flex-row items-start mb-2">
                 <Ionicons name="chatbubble-outline" size={16} color="#0CBFA6" style={{ marginTop: 2 }} />

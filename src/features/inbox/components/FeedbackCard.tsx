@@ -49,6 +49,21 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function renderStars(rating: number) {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <Ionicons
+        key={i}
+        name={i <= rating ? 'star' : 'star-outline'}
+        size={14}
+        color={rating >= 4 ? '#22C55E' : rating === 3 ? '#EAB308' : '#F97316'}
+      />,
+    );
+  }
+  return stars;
+}
+
 export function FeedbackCard({
   customerName,
   rating,
@@ -79,11 +94,10 @@ export function FeedbackCard({
     >
       {/* Header */}
       <View className="flex-row items-center mb-2">
-        <View
-          className="w-9 h-9 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: ratingColor }}
-        >
-          <Text className="text-white font-bold text-[13px]">{rating}/5</Text>
+        <View className="mr-3">
+          <View className="flex-row items-center">
+            {renderStars(rating)}
+          </View>
         </View>
 
         <View className="flex-1">
@@ -111,7 +125,7 @@ export function FeedbackCard({
 
       {/* Feedback Text */}
       {feedbackText ? (
-        <View className="ml-12 mb-3">
+        <View className="mb-3">
           <Text className="text-body leading-5" style={{ color: t.textSecondary }} numberOfLines={4}>
             {feedbackText}
           </Text>
@@ -120,7 +134,7 @@ export function FeedbackCard({
 
       {/* Actions */}
       {!isResolved && (
-        <View className="flex-row ml-12 mt-1 gap-2 flex-wrap">
+        <View className="flex-row mt-1 gap-2 flex-wrap">
           <Pressable
             onPress={onCall}
             className="flex-row items-center rounded-xl px-3 py-2 active:opacity-70"

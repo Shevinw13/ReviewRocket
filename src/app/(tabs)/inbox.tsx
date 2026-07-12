@@ -86,7 +86,7 @@ export default function InboxScreen() {
   const feedbackList =
     activeTab === 'needs-attention'
       ? unresolvedFeedback ?? []
-      : allFeedback ?? [];
+      : (allFeedback ?? []).filter((item) => item.rating >= 4);
 
   const isLoading =
     activeTab === 'needs-attention' ? unresolvedLoading : allLoading;
@@ -251,15 +251,24 @@ export default function InboxScreen() {
           }}
           accessibilityRole="tab"
           accessibilityState={{ selected: activeTab === 'all' }}
-          accessibilityLabel="All Feedback tab"
+          accessibilityLabel="Happy Customers tab"
         >
           <Text
             className="text-caption font-medium"
             style={{ color: activeTab === 'all' ? '#FFFFFF' : t.text }}
           >
-            All Feedback
+            Happy Customers
           </Text>
         </Pressable>
+      </View>
+
+      {/* Tab Description */}
+      <View className="px-5 mb-3">
+        <Text className="text-caption" style={{ color: t.textMuted }}>
+          {activeTab === 'needs-attention'
+            ? 'Customers who rated 1-3 stars. Reach out to make things right.'
+            : 'Customers who rated 4-5 stars. They received your Google review link.'}
+        </Text>
       </View>
 
       {/* Content */}
@@ -284,7 +293,7 @@ export default function InboxScreen() {
             <View className="items-center justify-center py-16">
               <View className="w-16 h-16 rounded-full bg-success-green/10 items-center justify-center mb-4">
                 <Ionicons
-                  name={activeTab === 'needs-attention' ? 'checkmark-circle' : 'chatbubble-ellipses-outline'}
+                  name={activeTab === 'needs-attention' ? 'checkmark-circle' : 'star'}
                   size={36}
                   color={activeTab === 'needs-attention' ? '#22C55E' : '#0CBFA6'}
                 />
@@ -292,12 +301,12 @@ export default function InboxScreen() {
               <Text className="text-body font-bold text-center" style={{ color: t.text }}>
                 {activeTab === 'needs-attention'
                   ? 'All caught up!'
-                  : 'No feedback yet'}
+                  : 'No happy customers yet'}
               </Text>
               <Text className="text-caption text-center mt-2 px-8" style={{ color: t.textMuted }}>
                 {activeTab === 'needs-attention'
                   ? 'No items need your attention right now. Keep up the great work!'
-                  : 'Send your first review request and feedback will appear here.'}
+                  : 'When customers rate you 4-5 stars, they\'ll show up here.'}
               </Text>
               {activeTab === 'all' && (
                 <Pressable
