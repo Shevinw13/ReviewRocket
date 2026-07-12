@@ -110,13 +110,25 @@ async function lookupBusinessByPhoneHash(
 /**
  * Parse a rating from the SMS body.
  * Returns the numeric rating (1-5) if the body is exactly "1", "2", "3", "4", or "5".
- * Returns null for any other input.
+/**
+ * Parse a customer's SMS reply into a 1-5 integer rating.
+ * Accepts whole numbers (1-5) and decimals (e.g. 4.5 rounds up to 5, 4.4 rounds down to 4).
+ * Returns null for any non-numeric or out-of-range input.
  */
 export function parseRating(body: string): number | null {
   const trimmed = body.trim();
+
+  // Exact integers 1-5
   if (/^[1-5]$/.test(trimmed)) {
     return parseInt(trimmed, 10);
   }
+
+  // Decimal numbers — round normally (.5+ rounds up, below .5 rounds down), clamp to 1-5
+  const num = parseFloat(trimmed);
+  if (!isNaN(num) && num >= 1 && num <= 5) {
+    return Math.max(1, Math.min(Math.round(num), 5));
+  }
+
   return null;
 }
 
