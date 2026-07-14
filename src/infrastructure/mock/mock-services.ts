@@ -66,6 +66,7 @@ const FAKE_BUSINESS_PROFILE: BusinessProfile = {
   email: FAKE_EMAIL,
   googleReviewUrl: 'https://google.com/maps/place/mitchell-plumbing',
   subscriptionTier: 'growth',
+  isTrialActive: false,
   smsUsedThisPeriod: 47,
   billingPeriodStart: new Date('2024-01-01'),
   createdAt: new Date('2023-06-15'),

@@ -21,6 +21,8 @@ interface BusinessOwnerRow {
   email: string;
   google_review_url: string;
   subscription_tier: SubscriptionTier;
+  is_trial_active: boolean;
+  trial_ends_at?: string;
   sms_used_this_period: number;
   billing_period_start: string;
   created_at: string;
@@ -67,6 +69,8 @@ function mapRowToProfile(row: BusinessOwnerRow): BusinessProfile {
     email: row.email,
     googleReviewUrl: row.google_review_url,
     subscriptionTier: row.subscription_tier,
+    isTrialActive: row.is_trial_active ?? false,
+    trialEndsAt: row.trial_ends_at ? new Date(row.trial_ends_at) : undefined,
     smsUsedThisPeriod: row.sms_used_this_period,
     billingPeriodStart: new Date(row.billing_period_start),
     createdAt: new Date(row.created_at),

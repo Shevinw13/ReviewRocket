@@ -16,6 +16,9 @@ export const TIER_QUOTAS: Record<SubscriptionTier, number> = {
   pro: 1000,
 };
 
+/** SMS limit during the 7-day free trial. */
+export const TRIAL_SMS_LIMIT = 10;
+
 /** Business owner profile linked to an auth user. */
 export interface BusinessProfile {
   id: string;
@@ -27,6 +30,8 @@ export interface BusinessProfile {
   email: string;
   googleReviewUrl: string;
   subscriptionTier: SubscriptionTier;
+  isTrialActive: boolean;
+  trialEndsAt?: Date;
   smsUsedThisPeriod: number;
   billingPeriodStart: Date;
   createdAt: Date;

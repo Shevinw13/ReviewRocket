@@ -20,7 +20,7 @@ import { useBusinessProfile } from '@/features/inbox/hooks/useBusinessProfile';
 import { useAuthContext } from '@/features/auth/context/AuthContext';
 import { useService } from '@/services';
 import { useTheme, type ThemePreference } from '@/theme/ThemeContext';
-import { TIER_QUOTAS, type SubscriptionTier } from '@/types';
+import { TIER_QUOTAS, TRIAL_SMS_LIMIT, type SubscriptionTier } from '@/types';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -154,7 +154,8 @@ export default function SettingsScreen() {
 
   const tier = profile?.subscriptionTier ?? 'starter';
   const tierName = TIER_DISPLAY_NAMES[tier];
-  const quota = TIER_QUOTAS[tier];
+  const isTrialActive = profile?.isTrialActive ?? false;
+  const quota = isTrialActive ? TRIAL_SMS_LIMIT : TIER_QUOTAS[tier];
   const used = profile?.smsUsedThisPeriod ?? 0;
   const remaining = Math.max(quota - used, 0);
   const usagePercent = getUsagePercentage(used, quota);

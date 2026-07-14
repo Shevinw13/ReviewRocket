@@ -33,7 +33,7 @@ import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import { useTheme } from '@/theme/ThemeContext';
 import type { DashboardMetrics as DashboardMetricsType, ActivityItem } from '@/types';
-import { TIER_QUOTAS } from '@/types';
+import { TIER_QUOTAS, TRIAL_SMS_LIMIT } from '@/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -97,7 +97,8 @@ export default function DashboardScreen() {
 
   // Quota warning calculation
   const tier = profile?.subscriptionTier ?? 'starter';
-  const quota = TIER_QUOTAS[tier];
+  const isTrialActive = profile?.isTrialActive ?? false;
+  const quota = isTrialActive ? TRIAL_SMS_LIMIT : TIER_QUOTAS[tier];
   const used = profile?.smsUsedThisPeriod ?? 0;
   const usagePercent = quota > 0 ? Math.round((used / quota) * 100) : 0;
   const showQuotaWarning = usagePercent >= 80 && !quotaWarningDismissed;

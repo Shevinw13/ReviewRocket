@@ -712,6 +712,8 @@ function mapBusinessProfile(row: Record<string, unknown>): BusinessProfile {
     email: row.email as string,
     googleReviewUrl: row.google_review_url as string,
     subscriptionTier: row.subscription_tier as BusinessProfile["subscriptionTier"],
+    is_trial_active: (row.is_trial_active as boolean) ?? false,
+    trial_ends_at: (row.trial_ends_at as string) || undefined,
     smsUsedThisPeriod: (row.sms_used_this_period as number) || 0,
     billingPeriodStart: new Date(row.billing_period_start as string),
     createdAt: new Date(row.created_at as string),

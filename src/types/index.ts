@@ -10,6 +10,7 @@ export {
   type BusinessType,
   type SubscriptionTier,
   TIER_QUOTAS,
+  TRIAL_SMS_LIMIT,
   type BusinessProfile,
   type ReviewRequestStatus,
   type ReviewRequest,

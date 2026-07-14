@@ -171,6 +171,9 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   // 6. Check SMS quota: if used >= quota, return 403 with QUOTA_EXCEEDED
+  // Trial users are limited to 10 total requests
+  const TRIAL_SMS_LIMIT = 10;
+
   const usageResult = await getSmsUsage(serviceClient, profile.id);
   if (!usageResult.success) {
     console.error(
@@ -184,13 +187,19 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   const { used, quota } = usageResult.data;
-  if (used >= quota) {
+  const effectiveQuota = profile.is_trial_active ? TRIAL_SMS_LIMIT : quota;
+
+  if (used >= effectiveQuota) {
+    const message = profile.is_trial_active
+      ? `You've used all ${TRIAL_SMS_LIMIT} review requests in your free trial. Subscribe to keep sending.`
+      : "SMS quota exceeded. Please upgrade your subscription.";
+
     return new Response(
       JSON.stringify({
         error: {
           code: "QUOTA_EXCEEDED",
-          message: "SMS quota exceeded. Please upgrade your subscription.",
-          details: { used, quota },
+          message,
+          details: { used, quota: effectiveQuota, isTrial: profile.is_trial_active ?? false },
         },
       }),
       { status: 403, headers: { "Content-Type": "application/json" } },

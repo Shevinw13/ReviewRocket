@@ -66,6 +66,8 @@ export interface BusinessProfile {
   email: string;
   googleReviewUrl: string;
   subscriptionTier: SubscriptionTier;
+  is_trial_active?: boolean;
+  trial_ends_at?: string;
   smsUsedThisPeriod: number;
   billingPeriodStart: Date;
   createdAt: Date;
