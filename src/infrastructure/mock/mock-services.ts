@@ -170,6 +170,7 @@ function generateFakeReviewRequests(): ReviewRequest[] {
     { name: 'Maria Torres', rating: 4, status: 'rating_received' as const, service: 'AC Service' },
     { name: 'Kevin Brooks', rating: 1, status: 'feedback_received' as const, service: 'Emergency Repair' },
     { name: 'Stephanie Lee', rating: 5, status: 'rating_received' as const, service: 'Furnace Install' },
+    { name: 'Mike Patterson', rating: undefined as any, status: 'google_link_sent' as const, service: 'Kitchen Remodel' },
     { name: 'Daniel Harris', rating: 5, status: 'rating_received' as const, service: 'Water Heater Install' },
     { name: 'Patricia Young', rating: 4, status: 'rating_received' as const, service: 'HVAC Repair' },
     { name: 'Tyler Ross', rating: 2, status: 'feedback_received' as const, service: 'Pipe Repair' },

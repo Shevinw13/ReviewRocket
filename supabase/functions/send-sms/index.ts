@@ -31,6 +31,7 @@ interface SendSmsRequest {
   customerName?: string;
   serviceType?: string;
   confirmDuplicate?: boolean;
+  directToGoogle?: boolean;
 }
 
 /** Response shape for a successful SMS send. */
@@ -111,7 +112,7 @@ serve(async (req: Request): Promise<Response> => {
     );
   }
 
-  const { phoneNumber, customerName, serviceType, confirmDuplicate } = body;
+  const { phoneNumber, customerName, serviceType, confirmDuplicate, directToGoogle } = body;
 
   if (!phoneNumber) {
     return new Response(
@@ -245,7 +246,14 @@ serve(async (req: Request): Promise<Response> => {
   const encryptedName = customerName ? await encrypt(customerName) : null;
 
   // 9. Format the SMS message
-  const smsBody = formatSmsMessage(profile.businessName, customerName, profile.business_type);
+  let smsBody: string;
+  if (directToGoogle && profile.googleReviewUrl) {
+    // Direct mode: skip rating, send Google link immediately
+    const greeting = customerName ? `Hi ${customerName}, ` : "";
+    smsBody = `${greeting}Thanks for choosing ${profile.businessName}! If you have a moment, we'd love for you to share your experience on Google: ${profile.googleReviewUrl}`;
+  } else {
+    smsBody = formatSmsMessage(profile.businessName, customerName, profile.business_type);
+  }
 
   // 10. Send via Twilio adapter
   const smsPayload: SendSmsPayload = {
@@ -269,7 +277,7 @@ serve(async (req: Request): Promise<Response> => {
         customer_phone_hash: phoneHash,
         customer_name_encrypted: encryptedName,
         service_type: serviceType || null,
-        status: "sent",
+        status: directToGoogle ? "google_link_sent" : "sent",
         sent_at: new Date().toISOString(),
       })
       .select("id")
@@ -335,7 +343,7 @@ serve(async (req: Request): Promise<Response> => {
         customer_phone_hash: phoneHash,
         customer_name_encrypted: encryptedName,
         service_type: serviceType || null,
-        status: "sent",
+        status: directToGoogle ? "google_link_sent" : "sent",
         sent_at: new Date().toISOString(),
       })
       .select("id")

@@ -44,6 +44,7 @@ export type ReviewRequestStatus =
   | 'delivered'
   | 'rating_received'
   | 'feedback_received'
+  | 'google_link_sent'
   | 'failed'
   | 'expired';
 

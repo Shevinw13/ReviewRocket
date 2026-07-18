@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   Alert,
+  Switch,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -58,6 +59,7 @@ export default function SendRequestScreen() {
   const [isSending, setIsSending] = useState(false);
   const [successState, setSuccessState] = useState<SuccessState | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [directToGoogle, setDirectToGoogle] = useState(false);
   const [lastSubmittedData, setLastSubmittedData] =
     useState<SendRequestFormData | null>(null);
   const lastSendTime = useRef(0);
@@ -87,11 +89,13 @@ export default function SendRequestScreen() {
     : false;
 
   // Generate live message preview
-  const messagePreview = generateSmsMessage(
-    profile?.businessType,
-    profile?.businessName ?? 'Your Business',
-    customerNameValue || undefined,
-  );
+  const messagePreview = directToGoogle
+    ? `${customerNameValue ? `Hi ${customerNameValue}, ` : ''}Thanks for choosing ${profile?.businessName ?? 'Your Business'}! If you have a moment, we'd love for you to share your experience on Google: ${profile?.googleReviewUrl || '[Your Google Review Link]'}`
+    : generateSmsMessage(
+        profile?.businessType,
+        profile?.businessName ?? 'Your Business',
+        customerNameValue || undefined,
+      );
 
   // ─── Phone Auto-formatting ───────────────────────────────────────────────
 
@@ -212,6 +216,7 @@ export default function SendRequestScreen() {
           customerName: data.customerName || undefined,
           serviceType: data.serviceType || undefined,
           businessId,
+          directToGoogle,
         }),
       );
 
@@ -282,7 +287,7 @@ export default function SendRequestScreen() {
         hapticWarning();
       }
     },
-    [businessId, smsService, reset],
+    [businessId, smsService, reset, directToGoogle],
   );
 
   const onSubmit = useCallback(
@@ -508,6 +513,26 @@ export default function SendRequestScreen() {
             )}
           </View>
 
+          {/* Direct to Google Toggle */}
+          <View className="mb-5 rounded-xl p-4 flex-row items-center" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border, borderLeftWidth: 3, borderLeftColor: '#0CBFA6' }}>
+            <View className="flex-1 mr-3">
+              <Text className="text-sm font-medium" style={{ color: t.text }}>
+                Send Google link directly
+              </Text>
+              <Text className="text-caption mt-0.5" style={{ color: t.textMuted }}>
+                Skip the 1-5 rating step. Only use for customers you're sure had a great experience.
+              </Text>
+            </View>
+            <Switch
+              value={directToGoogle}
+              onValueChange={setDirectToGoogle}
+              trackColor={{ false: '#E5E7EB', true: '#0CBFA6' }}
+              thumbColor="#FFFFFF"
+              accessibilityRole="switch"
+              accessibilityLabel="Send Google review link directly"
+            />
+          </View>
+
           {/* Message Preview */}
           <View className="mb-5">
             <View className="rounded-xl p-4" style={{ backgroundColor: t.cardBg, borderWidth: 1, borderColor: t.border }}>
@@ -522,19 +547,13 @@ export default function SendRequestScreen() {
                   {messagePreview}
                 </Text>
               </View>
+              <View className="flex-row items-center mt-3">
+                <Ionicons name="information-circle-outline" size={14} color="#6B7280" />
+                <Text className="text-[11px] ml-1.5" style={{ color: t.textMuted }}>
+                  Sent from (855) 597-7335
+                </Text>
+              </View>
             </View>
-          </View>
-
-          {/* Sender Phone Info */}
-          <View className="flex-row items-center mb-4 px-1">
-            <Ionicons
-              name="information-circle-outline"
-              size={18}
-              color="#6B7280"
-            />
-            <Text className="text-caption ml-2" style={{ color: t.textMuted }}>
-              Your customer will receive a text from (855) 597-7335
-            </Text>
           </View>
         </View>
       </ScrollView>

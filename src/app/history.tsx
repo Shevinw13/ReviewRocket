@@ -32,6 +32,9 @@ function formatDate(date: Date): string {
 }
 
 function getStatusLabel(request: ReviewRequest): { text: string; color: string; icon: string } {
+  if (request.status === 'google_link_sent') {
+    return { text: 'Google link sent', color: '#0CBFA6', icon: 'link-outline' };
+  }
   if (request.rating != null && request.rating >= 4) {
     return { text: 'Positive', color: '#22C55E', icon: 'checkmark-circle' };
   }

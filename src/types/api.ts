@@ -57,6 +57,8 @@ export interface SendSmsParams {
   customerName?: string;
   serviceType?: string;
   businessId: string;
+  /** If true, skip the 1-5 rating step and send Google review link directly. */
+  directToGoogle?: boolean;
 }
 
 /** Result returned from the SMS sending operation. */
