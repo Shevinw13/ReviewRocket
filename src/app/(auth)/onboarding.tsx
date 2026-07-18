@@ -50,7 +50,7 @@ const PAGES: OnboardingPage[] = [
     icon: 'star-outline',
     title: 'Collect Ratings',
     description:
-      'Customers reply with a simple 1-5 rating via text. No app download needed.',
+      'Customers reply with a simple 1-5 rating via text — or send your Google review link directly. No app download needed.',
   },
   {
     id: '3',
