@@ -441,6 +441,16 @@ export default function SettingsScreen() {
                 v{appVersion}
               </Text>
             </View>
+            {/* Privacy & Terms */}
+            <View className="px-4 py-3 flex-row items-center justify-center gap-3" style={{ borderTopWidth: 1, borderTopColor: t.border }}>
+              <Pressable onPress={() => Linking.openURL('https://nudgli.app/privacy')} accessibilityRole="link">
+                <Text className="text-caption" style={{ color: t.textMuted }}>Privacy Policy</Text>
+              </Pressable>
+              <Text className="text-caption" style={{ color: t.textMuted }}>·</Text>
+              <Pressable onPress={() => Linking.openURL('https://nudgli.app/terms')} accessibilityRole="link">
+                <Text className="text-caption" style={{ color: t.textMuted }}>Terms & Conditions</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
 

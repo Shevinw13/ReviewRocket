@@ -53,7 +53,7 @@ export function formatSmsMessage(
   businessType?: string,
 ): string {
   const greeting = customerName ? `Hi ${customerName}, ` : "";
-  const closing = "On a scale of 1-5, how would you rate your experience? Reply with a number from 1 to 5.";
+  const closing = "On a scale of 1-5, how would you rate your experience? Reply with a number from 1 to 5. Reply STOP to opt out.";
 
   switch (businessType) {
     case 'trades':

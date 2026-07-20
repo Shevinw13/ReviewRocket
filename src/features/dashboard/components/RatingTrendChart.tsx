@@ -65,7 +65,7 @@ export function RatingTrendChart({ data, period, overallAverage }: RatingTrendCh
           <View className="flex-row items-center">
             <Ionicons name="star" size={16} color="#F59E0B" />
             <Text className="text-caption font-semibold ml-2" style={{ color: t.text }}>
-              Avg Rating
+              Avg SMS Rating
             </Text>
           </View>
           <Text className="text-caption" style={{ color: t.textMuted }}>
@@ -101,7 +101,7 @@ export function RatingTrendChart({ data, period, overallAverage }: RatingTrendCh
         <View className="flex-row items-center flex-1">
           <Ionicons name="star" size={16} color="#F59E0B" />
           <Text className="text-caption font-semibold ml-2" style={{ color: t.text }}>
-            Avg Rating
+            Avg SMS Rating
           </Text>
           <Text className="text-caption ml-2" style={{ color: t.textMuted }}>
             · {totalRatings} rating{totalRatings !== 1 ? 's' : ''} {periodLabel}{totalRatings > MAX_BARS ? ` · latest ${MAX_BARS} shown` : ''}

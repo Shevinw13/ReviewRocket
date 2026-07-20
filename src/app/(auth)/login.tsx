@@ -11,6 +11,7 @@ import {
   Modal,
   Pressable,
   Image,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -345,6 +346,23 @@ export default function LoginScreen() {
               Create Account
             </Text>
           </TouchableOpacity>
+
+          {/* Privacy & Terms Links */}
+          <View className="flex-row justify-center mt-6 gap-3">
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://nudgli.app/privacy')}
+              accessibilityRole="link"
+            >
+              <Text className="text-caption text-gray-400 underline">Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text className="text-caption text-gray-300">·</Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL('https://nudgli.app/terms')}
+              accessibilityRole="link"
+            >
+              <Text className="text-caption text-gray-400 underline">Terms & Conditions</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
