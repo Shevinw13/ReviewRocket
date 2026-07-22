@@ -12,6 +12,10 @@ import {
   Text,
   Pressable,
   FlatList,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   useWindowDimensions,
   type ViewToken,
 } from 'react-native';
@@ -101,7 +105,14 @@ export default function OnboardingScreen() {
   const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showBusinessTypeSelection, setShowBusinessTypeSelection] = useState(false);
+  const [showBusinessInfo, setShowBusinessInfo] = useState(false);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
+  const [bizPhone, setBizPhone] = useState('');
+  const [bizAddress, setBizAddress] = useState('');
+  const [bizCity, setBizCity] = useState('');
+  const [bizState, setBizState] = useState('');
+  const [bizZip, setBizZip] = useState('');
+  const [bizEin, setBizEin] = useState('');
   const flatListRef = useRef<FlatList>(null);
 
   const businessProfileRepo = useService('businessProfile');
@@ -134,8 +145,27 @@ export default function OnboardingScreen() {
       await refetchProfile();
     }
     setShowBusinessTypeSelection(false);
+    setShowBusinessInfo(true);
+  };
+
+  const handleBusinessInfoContinue = async () => {
+    // Save business info to profile (backend will use this for Twilio registration)
+    if (profile?.id) {
+      await businessProfileRepo.update(profile.id, {
+        businessPhone: bizPhone || undefined,
+        businessAddress: bizAddress || undefined,
+        businessCity: bizCity || undefined,
+        businessState: bizState || undefined,
+        businessZip: bizZip || undefined,
+        ein: bizEin || undefined,
+      } as any);
+      await refetchProfile();
+    }
+    setShowBusinessInfo(false);
     setShowPlanSelection(true);
   };
+
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleSelectPlan = async (tier: SubscriptionTier) => {
     // Save selected tier to mock business profile
@@ -143,13 +173,58 @@ export default function OnboardingScreen() {
       await businessProfileRepo.updateSubscriptionTier(profile.id, tier);
       await refetchProfile();
     }
-    await completeOnboarding();
+    await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
+    setShowPlanSelection(false);
+    setShowConfirmation(true);
   };
 
   const completeOnboarding = async () => {
-    await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
     router.replace('/(tabs)');
   };
+
+  // ─── Account Created Confirmation ──────────────────────────────────────────
+
+  if (showConfirmation) {
+    return (
+      <SafeAreaView className="flex-1 bg-card-bg" edges={['top', 'bottom']}>
+        <View className="flex-1 px-6 items-center justify-center">
+          <View className="w-20 h-20 rounded-full bg-success-green/10 items-center justify-center mb-6">
+            <Ionicons name="checkmark-circle" size={44} color="#22C55E" />
+          </View>
+
+          <Text className="text-heading font-bold text-navy text-center mb-3">
+            You're all set!
+          </Text>
+
+          <Text className="text-body text-navy/60 text-center px-4 leading-6 mb-3">
+            Your account has been created successfully.
+          </Text>
+
+          <Text className="text-body text-navy/60 text-center px-4 leading-6 mb-8">
+            We're setting up your dedicated messaging number now. You'll receive a push notification and email as soon as it's ready and you can start sending review requests.
+          </Text>
+
+          <View className="bg-teal/5 border border-teal/20 rounded-xl p-4 mb-8 w-full">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="time-outline" size={18} color="#0CBFA6" />
+              <Text className="text-sm font-medium text-teal ml-2">We'll notify you when it's ready</Text>
+            </View>
+            <Text className="text-caption text-navy/50">
+              In the meantime, you can explore the app and set up your Google Review link.
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={completeOnboarding}
+            className="bg-teal rounded-2xl py-4 px-8 items-center active:opacity-80 w-full"
+            accessibilityRole="button"
+          >
+            <Text className="text-body font-bold text-white">Start Exploring</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // ─── Business Type Selection View ──────────────────────────────────────────
 
@@ -189,6 +264,122 @@ export default function OnboardingScreen() {
             </Pressable>
           ))}
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ─── Business Info View ────────────────────────────────────────────────────
+
+  if (showBusinessInfo) {
+    const canContinue = bizPhone.length >= 10 && bizAddress.length > 0 && bizCity.length > 0 && bizState.length > 0 && bizZip.length >= 5;
+
+    return (
+      <SafeAreaView className="flex-1 bg-card-bg" edges={['top', 'bottom']}>
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView className="flex-1 px-5 pt-8" keyboardShouldPersistTaps="handled" contentContainerClassName="pb-8">
+            <Text className="text-heading font-bold text-navy text-center mb-2">
+              Business Details
+            </Text>
+            <Text className="text-body text-navy/60 text-center mb-8">
+              We need a few details to set up your messaging account.
+            </Text>
+
+            {/* Business Phone */}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-navy mb-1">Business Phone</Text>
+              <TextInput
+                className="border border-light-gray rounded-xl bg-white px-4 py-3.5 text-body text-navy"
+                placeholder="(404) 555-1234"
+                placeholderTextColor="#9CA3AF"
+                value={bizPhone}
+                onChangeText={setBizPhone}
+                keyboardType="phone-pad"
+                maxLength={14}
+              />
+            </View>
+
+            {/* Address */}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-navy mb-1">Street Address</Text>
+              <TextInput
+                className="border border-light-gray rounded-xl bg-white px-4 py-3.5 text-body text-navy"
+                placeholder="123 Main St"
+                placeholderTextColor="#9CA3AF"
+                value={bizAddress}
+                onChangeText={setBizAddress}
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* City + State row */}
+            <View className="flex-row gap-3 mb-4">
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-navy mb-1">City</Text>
+                <TextInput
+                  className="border border-light-gray rounded-xl bg-white px-4 py-3.5 text-body text-navy"
+                  placeholder="Atlanta"
+                  placeholderTextColor="#9CA3AF"
+                  value={bizCity}
+                  onChangeText={setBizCity}
+                  autoCapitalize="words"
+                />
+              </View>
+              <View className="w-20">
+                <Text className="text-sm font-medium text-navy mb-1">State</Text>
+                <TextInput
+                  className="border border-light-gray rounded-xl bg-white px-4 py-3.5 text-body text-navy"
+                  placeholder="GA"
+                  placeholderTextColor="#9CA3AF"
+                  value={bizState}
+                  onChangeText={setBizState}
+                  autoCapitalize="characters"
+                  maxLength={2}
+                />
+              </View>
+            </View>
+
+            {/* Zip */}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-navy mb-1">Zip Code</Text>
+              <TextInput
+                className="border border-light-gray rounded-xl bg-white px-4 py-3.5 text-body text-navy"
+                placeholder="30301"
+                placeholderTextColor="#9CA3AF"
+                value={bizZip}
+                onChangeText={setBizZip}
+                keyboardType="number-pad"
+                maxLength={5}
+              />
+            </View>
+
+            {/* EIN (optional) */}
+            <View className="mb-6">
+              <Text className="text-sm font-medium text-navy mb-1">EIN (optional)</Text>
+              <TextInput
+                className="border border-light-gray rounded-xl bg-white px-4 py-3.5 text-body text-navy"
+                placeholder="XX-XXXXXXX"
+                placeholderTextColor="#9CA3AF"
+                value={bizEin}
+                onChangeText={setBizEin}
+                keyboardType="number-pad"
+                maxLength={10}
+              />
+              <Text className="text-caption text-navy/40 mt-1">
+                Don't have one? No problem — skip this.
+              </Text>
+            </View>
+
+            {/* Continue Button */}
+            <Pressable
+              onPress={handleBusinessInfoContinue}
+              disabled={!canContinue}
+              className={`rounded-2xl py-4 items-center ${canContinue ? 'bg-teal' : 'bg-teal/40'}`}
+              accessibilityRole="button"
+            >
+              <Text className="text-body font-bold text-white">Continue</Text>
+            </Pressable>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }

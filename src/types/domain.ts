@@ -34,6 +34,17 @@ export interface BusinessProfile {
   trialEndsAt?: Date;
   smsUsedThisPeriod: number;
   billingPeriodStart: Date;
+  /** Twilio messaging fields */
+  messagingEnabled: boolean;
+  twilioPhoneNumber?: string;
+  twilioRegistrationStatus?: 'pending' | 'approved' | 'rejected' | 'needs_info';
+  /** Business registration info */
+  businessPhone?: string;
+  businessAddress?: string;
+  businessCity?: string;
+  businessState?: string;
+  businessZip?: string;
+  ein?: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -29,6 +29,7 @@ import { SuccessIndicator } from '@/components/ui/SuccessIndicator';
 import { ErrorIndicator } from '@/components/ui/ErrorIndicator';
 import { generateSmsMessage } from '@/utils/smsTemplates';
 import { useTheme } from '@/theme/ThemeContext';
+import { MessagingPendingScreen } from '@/components/MessagingPendingScreen';
 import * as Contacts from 'expo-contacts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -309,6 +310,11 @@ export default function SendRequestScreen() {
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
+  // Gate: show pending screen if messaging is not yet enabled
+  if (profile && !profile.messagingEnabled) {
+    return <MessagingPendingScreen />;
+  }
+
   return (
     <KeyboardAvoidingView
       className="flex-1"
@@ -586,6 +592,9 @@ export default function SendRequestScreen() {
             </>
           )}
         </Pressable>
+        <Text className="text-[10px] text-center mt-2" style={{ color: t.textMuted, opacity: 0.5 }}>
+          By sending, you confirm this customer has consented to receive SMS.
+        </Text>
       </View>
     </KeyboardAvoidingView>
   );
